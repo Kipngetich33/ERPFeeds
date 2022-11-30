@@ -1,6 +1,7 @@
 frappe.provide('erpnext.PointOfSale');
 
 frappe.pages['point-of-sale'].on_page_load = function(wrapper) {
+	console.log("Running my point of sale")
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __('Point of Sale'),

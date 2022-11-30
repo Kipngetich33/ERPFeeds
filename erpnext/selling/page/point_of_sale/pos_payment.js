@@ -35,6 +35,10 @@ erpnext.PointOfSale.Payment = class {
 		);
 		this.$component = this.wrapper.find('.payment-container');
 		this.$payment_modes = this.$component.find('.payment-modes');
+		
+		console.log("Adding DOM Elements")
+		console.log(this.$component.find('.payment-modes'))
+
 		this.$totals_section = this.$component.find('.totals-section');
 		this.$totals = this.$component.find('.totals');
 		this.$numpad = this.$component.find('.number-pad');
