@@ -19,14 +19,6 @@ class ProductBundle(Document):
 
 		validate_uom_is_integer(self, "uom", "qty")
 
-	# def before_save(self):
-	# 	'''
-	# 	Method that runs before the document is saved
-	# 	'''
-	# 	print('*'*80)
-	# 	print("Before Saving")
-	# 	self.generate_atomic_items_ratios()
-
 	def on_trash(self):
 		linked_doctypes = [
 			"Delivery Note",
@@ -76,23 +68,6 @@ class ProductBundle(Document):
 						"Row #{0}: Child Item should not be a Product Bundle. Please remove Item {1} and Save"
 					).format(item.idx, frappe.bold(item.item_code))
 				)
-
-	# def generate_atomic_items_ratios(self):
-	# 	'''
-	# 	Method that gets values from the Items table and create an 
-	# 	atomic ratio equivalent for 1kg
-	# 	'''
-	# 	self.atomic_items = []
-	# 	total_qty = sum([x.qty for x in self.items])
-
-	# 	for item in self.items:
-	# 		self.append("atomic_items", {
-	# 			'item_code': item.item_code,
-	# 			'qty': item.qty/total_qty * 1,
-	# 			'description': item.description,
-	# 			'rate': item.rate,
-	# 			'uom':item.uom
-	# 		})
 
 
 @frappe.whitelist()

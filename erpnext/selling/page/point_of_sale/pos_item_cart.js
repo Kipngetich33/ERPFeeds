@@ -168,84 +168,6 @@ erpnext.PointOfSale.ItemCart = class {
 		);
 	}
 
-	// pop up function to allow users to add formula details
-	confirm_formula_save = (section_obj) => {
-		return new Promise(function(resolve, reject) {
-			const d = new frappe.ui.Dialog({
-				title: 'Save the formula.',
-				fields: [
-					{
-						label: 'Customer',
-						fieldname: 'customer',
-						fieldtype: 'Link',
-						options: 'Customer',
-						default: section_obj.customer_info.customer
-					},
-					{
-						label: 'Formula Name',
-						fieldname: 'formula_name',
-						fieldtype: 'Data',
-						madatory: 1
-					},
-					{
-						label: 'Stock UoM',
-						fieldname: 'stock_uom',
-						fieldtype: 'Select',
-						defualt:'Kg',
-						options:['Kg']
-					}
-				],
-				primary_action_label: 'Confirm',
-				primary_action(values) {
-					if(values.formula_name && values.customer ){
-						d.hide();
-						resolve(values);
-					}else{
-						frappe.throw("Customer and Formula name are required to save a new formula.")
-					}
-					
-				}
-
-			});
-			// show the dialog box
-			d.show()
-		})
-	}
-
-	// custom formula to save a new formula
-	async save_formula (){
-		console.log("Save Formula")
-		console.log(this)
-		console.log(cur_frm)
-		if(cur_frm.doc.items.length == 0){
-			frappe.throw('You have not added any items to cart to create a formula.')
-		}
-		
-		let confirmed_values = await this.confirm_formula_save(this)
-
-		// await for formula to save
-		let product_bundle_saved = await frappe.call({
-			method: 'feeds.custom_methods.product_bundle.create_bundle_from_formula',
-			args: {
-				formula_details :{
-					customer_name: confirmed_values.customer,
-					formula_name: confirmed_values.formula_name,
-					default_uom: confirmed_values.default_uom,
-					items:cur_frm.doc.items
-				}
-			},
-			callback: (res) => {
-				return res
-			}
-		});
-
-		if(product_bundle_saved.message.status){
-			frappe.msgprint("Successfully saved formula")
-		}else{
-			frappe.throw(product_bundle_saved.message.message)
-		}
-	}
-
 	make_cart_totals_section() {
 		this.$totals_section = this.$component.find('.cart-totals-section');
 
@@ -253,11 +175,11 @@ erpnext.PointOfSale.ItemCart = class {
 			`<button class="save_formula btn btn-primary">
 				Save Formula
 			</button>
-
-			<!-- <div class="add-discount-wrapper">
+			<!--
+			<div class="add-discount-wrapper">
 				${this.get_discount_icon()} ${__('Add Discount')}
-			</div> -->
-
+			</div>
+			-->
 			<div class="item-qty-total-container">
 				<div class="item-qty-total-label">${__('Total Items')}</div>
 				<div class="item-qty-total-value">0.00</div>
@@ -661,7 +583,7 @@ erpnext.PointOfSale.ItemCart = class {
 		items.map((item) => {
 			if(item.item_group != 'Services'){
 				total_item_qty = total_item_qty + item.qty;
-			}	
+			}
 		});
 
 		this.$totals_section.find('.item-qty-total-container').html(

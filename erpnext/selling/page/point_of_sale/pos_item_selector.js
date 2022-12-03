@@ -29,7 +29,7 @@ erpnext.PointOfSale.ItemSelector = class {
 					<div class="search-field"></div>
 					<div class="item-group-field"></div>
 				</div>
-
+				
 				<div style="padding:20px">
 					<div class="col-1"></div>
 					<div class="col-10"></div>
@@ -41,15 +41,12 @@ erpnext.PointOfSale.ItemSelector = class {
 							<input class="form-check-input only_formula" type="checkbox" value="" id="defaultCheck1">
 						</div>
 
-						
 					<div class="col-1"></div>
-				</div>
-				
+				</div>				
+
 				<div class="items-container"></div>
 			</section>`
 		);
-
-		// <button type="button" class="btn btn-primary filter_formulas">Customer Formulas</button>
 
 		this.$component = this.wrapper.find('.items-selector');
 		this.$items_container = this.$component.find('.items-container');
@@ -70,20 +67,10 @@ erpnext.PointOfSale.ItemSelector = class {
 		});
 	}
 
-	get_items({start = 0, page_length = 40, search_term='', selected_customer_name =''}) {
-		console.log("Within get items")
-		console.log(this.filter_customer_formulas)
-		console.log(cur_frm)
-
+	get_items({start = 0, page_length = 40, search_term=''}) {
 		const doc = this.events.get_frm().doc;
 		const price_list = (doc && doc.selling_price_list) || this.price_list;
 		let { item_group, pos_profile } = this;
-		
-		// custom code
-		// let selected_customer_name = ''
-		if(this.filter_customer_formulas && doc && doc.customer_name != ''){
-			selected_customer_name = doc.customer_name
-		}
 
 		// custom code
 		let selected_customer_name = ''
@@ -96,9 +83,10 @@ erpnext.PointOfSale.ItemSelector = class {
 		return frappe.call({
 			method: "erpnext.selling.page.point_of_sale.point_of_sale.get_items",
 			freeze: true,
-			args: { start, page_length, price_list, item_group, search_term, pos_profile },
+			args: { start, page_length, price_list, item_group, search_term, pos_profile, selected_customer_name },
 		});
 	}
+
 
 	render_item_list(items) {
 		this.$items_container.html('');
@@ -177,7 +165,7 @@ erpnext.PointOfSale.ItemSelector = class {
 		const me = this;
 		const doc = me.events.get_frm().doc;
 		this.$component.find('.search-field').html('');
-		this.$component.find('.item-group-field').html('');		
+		this.$component.find('.item-group-field').html('');
 
 		this.search_field = frappe.ui.form.make_control({
 			df: {
@@ -277,14 +265,68 @@ erpnext.PointOfSale.ItemSelector = class {
 			}
 		});
 
-		this.$component.on('click', '.item-wrapper', function() {
+		this.$component.on('click', '.item-wrapper', async function() {
 			const $item = $(this);
-			let item_code = unescape($item.attr('data-item-code'));
-			// const item_code = 'Sunflower Milled'
+			const item_code = unescape($item.attr('data-item-code'));
 			let batch_no = unescape($item.attr('data-batch-no'));
 			let serial_no = unescape($item.attr('data-serial-no'));
 			let uom = unescape($item.attr('data-uom'));
 			let rate = unescape($item.attr('data-rate'));
+
+			// check if the selected item is a product bundle
+			let product_bundle_check = await frappe.call({
+				method: 'erpnext.selling.page.point_of_sale.point_of_sale.get_product_bundle_n_prices',
+				args: {
+					item_code: item_code
+				},
+				callback: (res) => {
+					return res
+				}
+			});
+
+			// pop up function to allow users to add formula details
+			const add_formula_details = () => {
+				return new Promise(function(resolve, reject) {
+					const d = new frappe.ui.Dialog({
+						title: 'You selected a Formula.Please Select the required Amount & Quantity Below!',
+						fields: [
+							{
+								label: 'Unit of Measurement(UoM)',
+								fieldname: 'uom',
+								fieldtype: 'Select',
+								default: 'Kg',
+								options: ['Kg'],
+							},
+							{
+								label: 'Mixing Charge',
+								fieldname: 'mixing_charge',
+								fieldtype: 'Select',
+								default: 'Yes',
+								options: ['Yes','No'],
+							},
+							{
+								label: 'Quantity',
+								fieldname: 'qty',
+								fieldtype: 'Float'
+							}
+						],
+						primary_action_label: 'Submit',
+						primary_action(values) {
+							d.hide();
+							resolve(values);
+						}
+		
+					});
+					// show the dialog box
+					d.show()
+				})
+			}
+
+			let product_bundle;
+			if(product_bundle_check.message.status){
+				product_bundle = product_bundle_check.message
+			}
+
 
 			// escape(undefined) returns "undefined" then unescape returns "undefined"
 			batch_no = batch_no === "undefined" ? undefined : batch_no;
@@ -292,11 +334,56 @@ erpnext.PointOfSale.ItemSelector = class {
 			uom = uom === "undefined" ? undefined : uom;
 			rate = rate === "undefined" ? undefined : rate;
 
-			me.events.item_selected({
-				field: 'qty',
-				value: "+1",
-				item: { item_code, batch_no, serial_no, uom, rate }
-			});
+			if(product_bundle){
+				let formulaValues = await add_formula_details()
+				if(formulaValues.qty){
+					cur_frm.doc.items = []
+					// Add each item based on given Quantity
+					product_bundle.items.forEach((package_item) => {
+						console.log(package_item)
+						// define qty as string
+						let qtyAsStr = `+${formulaValues.qty * package_item.rqd_amt}`
+						me.events.item_selected({
+							field: 'qty',
+							value: qtyAsStr,
+							item: {
+								item_code:package_item.item_code,
+								batch_no:undefined,
+								serial_no:undefined, 
+								uom:package_item.uom, 
+								rate:package_item.price,
+							}
+						});
+
+					})
+					if(formulaValues.mixing_charge == "Yes"){
+
+						// Add Mixing Charge
+						me.events.item_selected({
+							field: 'qty',
+							value: `+${formulaValues.qty}`,
+							item: {
+								item_code:'Mixing Charge Item Per UoM',
+								batch_no:undefined,
+								serial_no:undefined, 
+							}
+						});
+					}	
+				}
+			}else{
+				me.events.item_selected({
+					field: 'qty',
+					value: "+1",
+					item: { 
+						item_code,
+						batch_no,
+						serial_no,
+						uom,
+						rate
+					}
+				});
+			}
+
 			me.search_field.set_focus();
 		});
 
@@ -316,6 +403,16 @@ erpnext.PointOfSale.ItemSelector = class {
 			this.$clear_search_btn.toggle(
 				Boolean(this.search_field.$input.val())
 			);
+		});
+
+		let main_this = this
+		this.$component.on('click', '.only_formula',async function() {
+			if(main_this.filter_customer_formulas){
+				main_this.filter_customer_formulas = false
+			}else{
+				main_this.filter_customer_formulas = true
+			}
+			main_this.filter_items({});
 		});
 	}
 
