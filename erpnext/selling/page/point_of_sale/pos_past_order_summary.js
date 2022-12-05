@@ -77,6 +77,7 @@ erpnext.PointOfSale.PastOrderSummary = class {
 
 		in_list(['Paid', 'Consolidated'], status) && (indicator_color = 'green');
 		status === 'Draft' && (indicator_color = 'red');
+		status === 'Unpaid' && (indicator_color = 'orange');
 		status === 'Return' && (indicator_color = 'grey');
 
 		return `<div class="left-section">
@@ -159,6 +160,14 @@ erpnext.PointOfSale.PastOrderSummary = class {
 	bind_events() {
 		this.$summary_container.on('click', '.return-btn', () => {
 			this.events.process_return(this.doc.name);
+			this.toggle_component(false);
+			this.$component.find('.no-summary-placeholder').css('display', 'flex');
+			this.$summary_wrapper.css('display', 'none');
+		});
+
+		// complete payment functionality that acts as edit order for now
+		this.$summary_container.on('click', '.complete-btn', () => {
+			this.events.complete_pay(this.doc.name);
 			this.toggle_component(false);
 			this.$component.find('.no-summary-placeholder').css('display', 'flex');
 			this.$summary_wrapper.css('display', 'none');
@@ -311,7 +320,9 @@ erpnext.PointOfSale.PastOrderSummary = class {
 
 		return [
 			{ condition: this.doc.docstatus === 0, visible_btns: ['Edit Order', 'Delete Order'] },
-			{ condition: !this.doc.is_return && this.doc.docstatus === 1, visible_btns: ['Print Receipt', 'Email Receipt', 'Return']},
+			// check for unpaid invoices
+			{ condition: this.doc.paid_amount < this.doc.rounded_total && this.doc.docstatus === 1, visible_btns: ['Complete Payment','Print Receipt', 'Email Receipt']},
+			{ condition: !this.doc.is_return && this.doc.docstatus === 1 && this.doc.paid_amount === this.doc.rounded_total, visible_btns: ['Print Receipt', 'Email Receipt', 'Return']},
 			{ condition: this.doc.is_return && this.doc.docstatus === 1, visible_btns: ['Print Receipt', 'Email Receipt']}
 		];
 	}

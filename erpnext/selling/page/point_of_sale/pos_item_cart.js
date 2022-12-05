@@ -1040,6 +1040,7 @@ erpnext.PointOfSale.ItemCart = class {
 				const posting_datetime = moment(invoice.posting_date+" "+invoice.posting_time).format("Do MMMM, h:mma");
 				let indicator_color = {
 					'Paid': 'green',
+					'Unpaid':'orange',
 					'Draft': 'red',
 					'Return': 'gray',
 					'Consolidated': 'blue'
@@ -1103,7 +1104,9 @@ erpnext.PointOfSale.ItemCart = class {
 
 		this.update_totals_section(frm);
 
-		if(frm.doc.docstatus === 1) {
+		// allow payment of unpaid amount via checkout
+
+		if(frm.doc.docstatus === 1 && frm.doc.docstatus === 0) {
 			this.$totals_section.find('.checkout-btn').css('display', 'none');
 			this.$totals_section.find('.edit-cart-btn').css('display', 'none');
 		} else {

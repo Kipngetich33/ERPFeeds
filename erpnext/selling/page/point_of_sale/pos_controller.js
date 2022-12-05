@@ -404,6 +404,16 @@ erpnext.PointOfSale.Controller = class {
 						() => this.item_selector.toggle_component(true)
 					]);
 				},
+				// complete pay event
+				complete_pay: (name) => {
+					this.recent_order_list.toggle_component(false);
+					frappe.run_serially([
+						() => this.frm.refresh(name),
+						// () => this.frm.call('reset_mode_of_payments'),
+						() => this.cart.load_invoice(),
+						() => this.item_selector.toggle_component(true)
+					]);
+				},
 				delete_order: (name) => {
 					frappe.model.delete_doc(this.frm.doc.doctype, name, () => {
 						this.recent_order_list.refresh_list();

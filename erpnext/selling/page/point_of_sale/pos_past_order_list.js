@@ -59,7 +59,7 @@ erpnext.PointOfSale.PastOrderList = class {
 			df: {
 				label: __('Invoice Status'),
 				fieldtype: 'Select',
-				options: `Draft\nPaid\nConsolidated\nReturn`,
+				options: `Draft\nPaid\nUnpaid\nConsolidated\nReturn`,
 				placeholder: __('Filter by invoice status'),
 				onchange: function() {
 					if (me.$component.is(':visible')) me.refresh_list();
