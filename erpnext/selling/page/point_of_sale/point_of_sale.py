@@ -445,6 +445,28 @@ def get_product_bundle_n_prices(item_code):
 	# get mixiing charge
 	mixing_charge_per_uom = frappe.get_doc("Feeds Settings").mixing_charge_per_uom
 
+	# get original product bundle items
+	bundle_items_n_prices_original = {}
+	# get item prices
+	for package_item in product_bundle.get('doc').items:
+		package_item_price = get_item_price(package_item.item_code)
+		if not package_item_price.get('status'):
+			bundle_items_n_prices_original[package_item.item_code] = {
+				'item_code':package_item.item_code,
+				'price': None,
+				'uom': package_item.uom,
+				'rqd_amt':package_item.qty
+			}
+		else:
+			bundle_items_n_prices_original[package_item.item_code] = {
+				'item_code':package_item.item_code,
+				'price': str(package_item_price.get('amount')),
+				'currency':package_item_price.get('currency'),
+				'uom': package_item.uom,
+				'rqd_amt':package_item.qty
+			}
+
+	# get atomic product bundle items
 	bundle_items_n_prices = {}
 	# get item prices
 	for package_item in product_bundle.get('doc').atomic_items:
@@ -468,5 +490,6 @@ def get_product_bundle_n_prices(item_code):
 	return {
 		'status':True,
 		'items': list(bundle_items_n_prices.values()),
+		'original_items':list(bundle_items_n_prices_original.values()),
 		'mixing_charge_per_uom': mixing_charge_per_uom
 	}

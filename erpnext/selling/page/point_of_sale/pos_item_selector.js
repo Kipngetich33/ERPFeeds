@@ -315,10 +315,88 @@ erpnext.PointOfSale.ItemSelector = class {
 							d.hide();
 							resolve(values);
 						}
-		
 					});
 					// show the dialog box
 					d.show()
+				})
+			}
+
+			// pop up function to allow users to add formula details
+			const view_formula_details = (original_items) => {
+				let product_bundle_items = []
+				let total_qty = 0
+				let total_amount = 0
+				original_items.forEach((original_item) => {
+					product_bundle_items.push({ 
+						item_code:original_item.item_code, 
+						qty: original_item.rqd_amt,
+						rate: original_item.price, 
+						net_amount: original_item.price * original_item.rqd_amt
+					})
+					// calculate total qty
+					total_qty += original_item.rqd_amt
+					total_amount +=  original_item.price * original_item.rqd_amt
+				})
+
+				// add total_amount and qty
+				product_bundle_items.push({
+					item_code:"Total",
+					qty: total_qty,
+					net_amount: total_amount
+				})
+				
+				return new Promise(function(resolve, reject) {
+					const dialog = new frappe.ui.Dialog({
+						title: "Formula Details",
+						fields: [
+							{
+								fieldname: 'table',
+								fieldtype: 'Table',
+								cannot_add_rows: true,
+								in_place_edit: false,
+								data: product_bundle_items,
+								fields: [
+									{ 
+										fieldname: 'item_code', 
+										fieldtype: 'Link', 
+										in_list_view: 1, 
+										label: 'Item' 
+									},
+									{ 
+										fieldname: 'qty', 
+										fieldtype: 'Float', 
+										in_list_view: 1, 
+										label: 'Quantity(kgs)' 
+									},
+									{ 
+										fieldname: 'rate', 
+										fieldtype: 'Float', 
+										in_list_view: 1, 
+										label: 'Rate' 
+									},
+									{ 
+										fieldname: 'net_amount', 
+										fieldtype: 'Float', 
+										in_list_view: 1, 
+										label: 'Amount' 
+									}
+								]
+							}
+						],
+						primary_action_label: 'Continue',
+						primary_action(values) {
+							dialog.hide();
+							resolve({values:values,action:'Continue'});
+						},
+						secondary_action_label: 'Print',
+						secondary_action: 'Print',
+						secondary_action(values) {
+							dialog.hide();
+							resolve({values:values,action:'Print'});
+						}
+					});
+					// show the dialog box
+					dialog.show()
 				})
 			}
 
@@ -335,40 +413,44 @@ erpnext.PointOfSale.ItemSelector = class {
 			rate = rate === "undefined" ? undefined : rate;
 
 			if(product_bundle){
-				let formulaValues = await add_formula_details()
-				if(formulaValues.qty){
-					cur_frm.doc.items = []
-					// Add each item based on given Quantity
-					product_bundle.items.forEach((package_item) => {
-						console.log(package_item)
-						// define qty as string
-						let qtyAsStr = `+${formulaValues.qty * package_item.rqd_amt}`
-						me.events.item_selected({
-							field: 'qty',
-							value: qtyAsStr,
-							item: {
-								item_code:package_item.item_code,
-								batch_no:undefined,
-								serial_no:undefined, 
-								uom:package_item.uom, 
-								rate:package_item.price,
-							}
-						});
+				let view_formula = await view_formula_details(product_bundle.original_items)
 
-					})
-					if(formulaValues.mixing_charge == "Yes"){
+				if(view_formula.action == "Continue"){
+					let formulaValues = await add_formula_details()
 
-						// Add Mixing Charge
-						me.events.item_selected({
-							field: 'qty',
-							value: `+${formulaValues.qty}`,
-							item: {
-								item_code:'Mixing Charge Item Per UoM',
-								batch_no:undefined,
-								serial_no:undefined, 
-							}
-						});
-					}	
+					if(formulaValues.qty){
+						cur_frm.doc.items = []
+						// Add each item based on given Quantity
+						product_bundle.items.forEach((package_item) => {
+							// define qty as string
+							let qtyAsStr = `+${formulaValues.qty * package_item.rqd_amt}`
+							me.events.item_selected({
+								field: 'qty',
+								value: qtyAsStr,
+								item: {
+									item_code:package_item.item_code,
+									batch_no:undefined,
+									serial_no:undefined, 
+									uom:package_item.uom, 
+									rate:package_item.price,
+								}
+							});
+
+						})
+						if(formulaValues.mixing_charge == "Yes"){
+
+							// Add Mixing Charge
+							me.events.item_selected({
+								field: 'qty',
+								value: `+${formulaValues.qty}`,
+								item: {
+									item_code:'Mixing Charge Item Per UoM',
+									batch_no:undefined,
+									serial_no:undefined, 
+								}
+							});
+						}	
+					}
 				}
 			}else{
 				me.events.item_selected({
