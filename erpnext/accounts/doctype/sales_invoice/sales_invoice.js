@@ -9,6 +9,7 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 	setup(doc) {
 		this.setup_posting_date_time_check();
 		super.setup(doc);
+
 	}
 	company() {
 		erpnext.accounts.dimensions.update_dimension(this.frm, this.frm.doctype);
@@ -585,6 +586,15 @@ cur_frm.set_query("asset", "items", function(doc, cdt, cdn) {
 	}
 });
 
+// set quety for customer formulas
+cur_frm.set_query('customer_formulas', function(doc) {
+	return {
+		filters: {
+			linked_customer: doc.customer,
+		}
+	}
+});
+
 frappe.ui.form.on('Sales Invoice', {
 	setup: function(frm){
 		frm.add_fetch('customer', 'tax_id', 'tax_id');
@@ -755,6 +765,80 @@ frappe.ui.form.on('Sales Invoice', {
 		frm.events.hide_fields(frm);
 		frm.fields_dict.items.grid.toggle_reqd("item_code", frm.doc.update_stock);
 		frm.trigger('reset_posting_time');
+	},
+
+	customer_formulas: function(frm) {
+		if(frm.doc.customer_formulas){		
+			frappe.call({
+				method: "feeds.custom_methods.product_bundle.get_formula_items",
+				args: {
+					"item_code": frm.doc.customer_formulas
+				},
+				callback: function(res) {
+					if (res) {
+						frm.set_value('formula_details',[])
+						res.message.forEach((item) => {
+							var row = frappe.model.add_child(frm.doc, "Formula Details", "formula_details");
+							row.item_code = item.item_code;
+							row.qty = item.qty;
+							row.description = item.description;
+							row.uom = item.uom;
+						})
+
+					}
+					refresh_field('formula_details');
+				}
+			});
+
+		}else{
+			// clear the table
+			frm.set_value('formula_details',[])
+		}
+	
+	},
+
+	apply_formula: async (frm) => {
+		let formulaValues = await  add_formula_details()
+
+		// check if the selected item is a product bundle
+		let product_bundle_check = await frappe.call({
+			method: 'erpnext.selling.page.point_of_sale.point_of_sale.get_product_bundle_n_prices',
+			args: {
+				item_code: frm.doc.customer_formulas
+			},
+			callback: (res) => {
+				return res
+			}
+		});
+
+		let product_bundle;
+		if(product_bundle_check.message.status){
+			product_bundle = product_bundle_check.message
+		}
+
+		if(formulaValues.qty){
+			frm.set_value('items',[])
+			// Add each item based on given Quantity
+			product_bundle.items.forEach((item) => {
+				// define qty as string
+				let qtyAsStr = `+${formulaValues.qty * item.rqd_amt}`		
+				
+				var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
+				row.item_code = item.item_code;
+				row.item_name = item.item_code;
+				row.description = item.item_code;
+				row.description = item.item_code;
+				row.qty = qtyAsStr
+				row.rate = item.price;
+				row.amount = qtyAsStr * item.price;
+				row.uom = item.uom;
+				row.income_account = "Cost of Goods Sold - GF"
+
+				
+
+			})
+		}
+		refresh_field('items');
 	},
 
 	redeem_loyalty_points: function(frm) {
@@ -1043,4 +1127,42 @@ var select_loyalty_program = function(frm, loyalty_programs) {
 	});
 
 	dialog.show();
+}
+
+
+// pop up function to allow users to add formula details
+const add_formula_details = () => {
+	return new Promise(function(resolve, reject) {
+		const d = new frappe.ui.Dialog({
+			title: 'You selected a Formula.Please Select the required Amount & Quantity Below!',
+			fields: [
+				{
+					label: 'Unit of Measurement(UoM)',
+					fieldname: 'uom',
+					fieldtype: 'Select',
+					default: 'Kg',
+					options: ['Kg'],
+				},
+				{
+					label: 'Mixing Charge',
+					fieldname: 'mixing_charge',
+					fieldtype: 'Select',
+					default: 'Yes',
+					options: ['Yes','No'],
+				},
+				{
+					label: 'Quantity',
+					fieldname: 'qty',
+					fieldtype: 'Float'
+				}
+			],
+			primary_action_label: 'Submit',
+			primary_action(values) {
+				d.hide();
+				resolve(values);
+			}
+		});
+		// show the dialog box
+		d.show()
+	})
 }

@@ -184,7 +184,6 @@
    "in_list_view": 1,
    "label": "Rate",
    "options": "currency",
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -289,7 +288,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-07-28 10:20:51.559010",
+ "modified": "2022-12-13 23:31:15.178170",
  "modified_by": "Administrator",
  "module": "Manufacturing",
  "name": "BOM Item",
