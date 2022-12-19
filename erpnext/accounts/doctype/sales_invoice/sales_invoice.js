@@ -367,6 +367,10 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		this.frm.script_manager.copy_from_first_row("items", row, ["income_account", "discount_account", "cost_center"]);
 	}
 
+	formula_details(doc, cdt, cdn){
+		console.log('Clicked .................')
+	}
+
 	set_dynamic_labels() {
 		super.set_dynamic_labels();
 		this.frm.events.hide_fields(this.frm)
@@ -402,6 +406,8 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 			})
 		}
 	}
+
+
 
 	is_pos(frm){
 		this.set_pos_data();
@@ -768,7 +774,9 @@ frappe.ui.form.on('Sales Invoice', {
 	},
 
 	customer_formulas: function(frm) {
-		if(frm.doc.customer_formulas){		
+		if(frm.doc.customer_formulas){	
+			let total_qty = 0
+			let total_amt = 0	
 			frappe.call({
 				method: "feeds.custom_methods.product_bundle.get_formula_items",
 				args: {
@@ -783,8 +791,14 @@ frappe.ui.form.on('Sales Invoice', {
 							row.qty = item.qty;
 							row.description = item.description;
 							row.uom = item.uom;
-						})
 
+							total_qty += item.qty
+							// total_amt += item.
+						})
+						frm.set_value("total_amount_formula",total_amt)
+						frm.set_value("total_qty_formula",total_qty)
+						refresh_field('total_amount_formula');
+						refresh_field('total_qty_formula');
 					}
 					refresh_field('formula_details');
 				}
@@ -1166,3 +1180,27 @@ const add_formula_details = () => {
 		d.show()
 	})
 }
+
+// Functions called on change of formula
+frappe.ui.form.on("Formula Details", {
+	item_code: function(frm, cdt, cdn) {
+		console.log("A change has occurred!")
+		let total_qty = 0
+		let total_amt = 0
+		frm.doc.formula_details.forEach((row) => {
+			total_qty += row.qty
+		})
+		frm.set_value("total_qty_formula",total_qty)
+	}
+});
+
+frappe.ui.form.on("Formula Details", {
+	qty: function(frm, cdt, cdn) {
+		let total_qty = 0
+		let total_amt = 0
+		frm.doc.formula_details.forEach((row) => {
+			total_qty += row.qty
+		})
+		frm.set_value("total_qty_formula",total_qty)
+	}
+});
