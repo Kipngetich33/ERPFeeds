@@ -368,7 +368,6 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 	}
 
 	formula_details(doc, cdt, cdn){
-		console.log('Clicked .................')
 	}
 
 	set_dynamic_labels() {
@@ -847,12 +846,41 @@ frappe.ui.form.on('Sales Invoice', {
 				row.amount = qtyAsStr * item.price;
 				row.uom = item.uom;
 				row.income_account = "Cost of Goods Sold - GF"
-
-				
-
 			})
 		}
 		refresh_field('items');
+	},
+
+	save_formula: async function(frm) {
+		// custom formula to save a new formula 
+		if(frm.doc.formula_details.length == 0){
+			frappe.throw('You have not added any materials on the formula table.')
+		}
+		
+		let confirmed_values = await confirm_formula_save(frm)
+
+		// await for formula to save
+		let product_bundle_saved = await frappe.call({
+			method: 'feeds.custom_methods.product_bundle.create_bundle_from_formula',
+			args: {
+				formula_details :{
+					customer_name: confirmed_values.customer,
+					formula_name: confirmed_values.formula_name,
+					default_uom: confirmed_values.default_uom,
+					items:cur_frm.doc.formula_details
+				}
+			},
+			callback: (res) => {
+				return res
+			}
+		});
+
+		if(product_bundle_saved.message.status){
+			frappe.msgprint("Successfully saved formula")
+		}else{
+			frappe.throw(product_bundle_saved.message.message)
+		}
+
 	},
 
 	redeem_loyalty_points: function(frm) {
@@ -1184,7 +1212,6 @@ const add_formula_details = () => {
 // Functions called on change of formula
 frappe.ui.form.on("Formula Details", {
 	item_code: function(frm, cdt, cdn) {
-		console.log("A change has occurred!")
 		let total_qty = 0
 		let total_amt = 0
 		frm.doc.formula_details.forEach((row) => {
@@ -1204,3 +1231,45 @@ frappe.ui.form.on("Formula Details", {
 		frm.set_value("total_qty_formula",total_qty)
 	}
 });
+
+// pop up function to allow users to add formula details
+const confirm_formula_save = (frm) => {
+	return new Promise(function(resolve, reject) {
+		const d = new frappe.ui.Dialog({
+			title: 'Save the formula.',
+			fields: [
+				{
+					label: 'Customer',
+					fieldname: 'customer',
+					fieldtype: 'Link',
+					options: 'Customer',
+					default: frm.doc.customer
+				},
+				{
+					label: 'Formula Name',
+					fieldname: 'formula_name',
+					fieldtype: 'Data',
+					madatory: 1
+				},
+				{
+					label: 'Stock UoM',
+					fieldname: 'stock_uom',
+					fieldtype: 'Select',
+					defualt:'Kg',
+					options:['Kg']
+				}
+			],
+			primary_action_label: 'Confirm',
+			primary_action(values) {
+				if(values.formula_name && values.customer ){
+					d.hide();
+					resolve(values);
+				}else{
+					frappe.throw("Customer and Formula name are required to save a new formula.")
+				}
+			}
+		});
+		// show the dialog box
+		d.show()
+	})
+}
