@@ -790,8 +790,8 @@ frappe.ui.form.on('Sales Invoice', {
 							row.description = item.description;
 							row.uom = item.uom;
 
-							total_qty += item.qty
-							// total_amt += item.
+							total_qty += row.qty
+							total_amt += row.amount
 						})
 						frm.set_value("total_amount_formula",total_amt)
 						frm.set_value("total_qty_formula",total_qty)
@@ -1229,16 +1229,15 @@ frappe.ui.form.on("Formula Details", {
 						let total_amt = 0
 						frm.doc.formula_details.forEach((row) => {
 							total_qty += row.qty
+							total_amt += row.amount
 						})
 						frm.set_value("total_qty_formula",total_qty)
+						frm.set_value("total_amount_formula",total_amt)
 						frm.refresh_fields();
-
-
 					}else{
 						frappe.throw(`Item price is not defined for ${row.item_code}`)
 					}
 				}
-				refresh_field('formula_details');
 			}
 		});
 	}
@@ -1251,8 +1250,10 @@ frappe.ui.form.on("Formula Details", {
 		frm.doc.formula_details.forEach((row) => {
 			row.amount = row.qty * row.rate
 			total_qty += row.qty
+			total_amt += row.amount
 		})
 		frm.set_value("total_qty_formula",total_qty)
+		frm.set_value("total_amount_formula",total_amt)
 		frm.refresh_fields();
 	}
 });
@@ -1264,8 +1265,10 @@ frappe.ui.form.on("Formula Details", {
 		frm.doc.formula_details.forEach((row) => {
 			row.amount = row.qty * row.rate
 			total_qty += row.qty
+			total_amt += row.amount
 		})
 		frm.set_value("total_qty_formula",total_qty)
+		frm.set_value("total_amount_formula",total_amt)
 		frm.refresh_fields();
 	}
 });
