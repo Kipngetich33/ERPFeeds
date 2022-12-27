@@ -781,7 +781,7 @@ frappe.ui.form.on('Sales Invoice', {
 				callback: function(res) {
 					if (res) {
 						frm.set_value('formula_details',[])
-						res.message.forEach((item) => {
+						res.message.bundle_items.forEach((item) => {
 							var row = frappe.model.add_child(frm.doc, "Formula Details", "formula_details");
 							row.item_code = item.item_code;
 							row.qty = item.qty;
@@ -793,6 +793,16 @@ frappe.ui.form.on('Sales Invoice', {
 							total_qty += row.qty
 							total_amt += row.amount
 						})
+
+						// add the mixing charge
+						var row = frappe.model.add_child(frm.doc, "Formula Details", "formula_details");
+						row.item_code = "Mixing Charge Item Per UoM"
+						row.qty = total_qty
+						row.rate = res.message.mixing_charge_rate
+						row.amount = row.qty * row.rate
+						row.description = "Mixing Charge";
+						row.uom = "Kg"
+
 						frm.set_value("total_amount_formula",total_amt)
 						frm.set_value("total_qty_formula",total_qty)
 						refresh_field('total_amount_formula');
@@ -831,31 +841,55 @@ frappe.ui.form.on('Sales Invoice', {
 		if(formulaValues.qty){
 			frm.set_value('items',[])
 
-			let formula_items_qty = (frm.doc.formula_details.map((x) => x.qty)).reduce((x,y) => x+y,0)
+			let formula_items_qty = (frm.doc.formula_details.map((x) => x.item_code != "Mixing Charge Item Per UoM" ? x.qty : 0)).reduce((x,y) => x+y,0)
 
 			let total_items_qty = 0
 			let total_items_amt = 0
+			let mixing_charge_rate = 0
 			// get item from formula tables
 			frm.doc.formula_details.forEach((item) => {
-				let calculated_qty = formulaValues.qty / formula_items_qty * item.qty;
-				// define qty as string				
-				var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
-				row.item_code = item.item_code;
-				row.item_name = item.item_code;
-				row.description = item.item_code;
-				row.description = item.item_code;
-				row.qty = calculated_qty
-				row.rate = item.rate;
-				row.amount = calculated_qty * item.rate;
-				// items below should be modified accordingly
-				row.uom = "Kg";
-				row.income_account = "Cost of Goods Sold - GF";
+				if(item.item_code == "Mixing Charge Item Per UoM"){
+					mixing_charge_rate = item.rate
+				}else{
+					let calculated_qty = formulaValues.qty / formula_items_qty * item.qty;
+					// define qty as string				
+					var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
+					row.item_code = item.item_code;
+					row.item_name = item.item_code;
+					row.description = item.item_code;
+					row.description = item.item_code;
+					row.qty = calculated_qty
+					row.rate = item.rate;
+					row.amount = calculated_qty * item.rate;
+					// items below should be modified accordingly
+					row.uom = "Kg";
+					row.income_account = "Cost of Goods Sold - GF";
 
-				// calculate total qty and amount
-				total_items_qty += row.qty
-				total_items_amt += row.amount
+					// calculate total qty and amount
+					total_items_qty += row.qty
+					total_items_amt += row.amount
+					
+				}
 			}) 
+
+			// add mixing charge
+			frm.doc.formula_details.forEach((item) => {
+				if(item.item_code == "Mixing Charge Item Per UoM"){
+					var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
+					row.item_code = item.item_code;
+					row.item_name = item.item_code;
+					row.description = item.item_code;
+					row.description = item.item_code;
+					row.qty = total_items_qty
+					row.rate = mixing_charge_rate
+					row.amount = row.qty * row.rate
+					// items below should be modified accordingly
+					row.uom = "Kg";
+					row.income_account = "Cost of Goods Sold - GF";
+				}
+			})
 			
+
 			// set totals
 			frm.set_value("total_qty",total_items_qty)
 			frm.set_value("base_total",total_items_amt)
