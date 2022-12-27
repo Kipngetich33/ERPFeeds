@@ -810,7 +810,7 @@ frappe.ui.form.on('Sales Invoice', {
 	},
 
 	apply_formula: async (frm) => {
-		let formulaValues = await  add_formula_details()
+		let formulaValues = await  add_formula_details(frm)
 
 		// check if the selected item is a product bundle
 		let product_bundle_check = await frappe.call({
@@ -830,24 +830,40 @@ frappe.ui.form.on('Sales Invoice', {
 
 		if(formulaValues.qty){
 			frm.set_value('items',[])
-			// Add each item based on given Quantity
-			product_bundle.items.forEach((item) => {
-				// define qty as string
-				let qtyAsStr = `+${formulaValues.qty * item.rqd_amt}`		
-				
+
+			let formula_items_qty = (frm.doc.formula_details.map((x) => x.qty)).reduce((x,y) => x+y,0)
+
+			let total_items_qty = 0
+			let total_items_amt = 0
+			// get item from formula tables
+			frm.doc.formula_details.forEach((item) => {
+				let calculated_qty = formulaValues.qty / formula_items_qty * item.qty;
+				// define qty as string				
 				var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
 				row.item_code = item.item_code;
 				row.item_name = item.item_code;
 				row.description = item.item_code;
 				row.description = item.item_code;
-				row.qty = qtyAsStr
-				row.rate = item.price;
-				row.amount = qtyAsStr * item.price;
-				row.uom = item.uom;
-				row.income_account = "Cost of Goods Sold - GF"
-			})
+				row.qty = calculated_qty
+				row.rate = item.rate;
+				row.amount = calculated_qty * item.rate;
+				// items below should be modified accordingly
+				row.uom = "Kg";
+				row.income_account = "Cost of Goods Sold - GF";
+
+				// calculate total qty and amount
+				total_items_qty += row.qty
+				total_items_amt += row.amount
+			}) 
+			
+			// set totals
+			frm.set_value("total_qty",total_items_qty)
+			frm.set_value("base_total",total_items_amt)
+			frm.set_value("base_net_total",total_items_amt)
+			frm.set_value("total",total_items_amt)
+			frm.set_value("net_total",total_items_amt)
 		}
-		refresh_field('items');
+		frm.refresh_fields();
 	},
 
 	save_formula: async function(frm) {
@@ -1172,7 +1188,7 @@ var select_loyalty_program = function(frm, loyalty_programs) {
 
 
 // pop up function to allow users to add formula details
-const add_formula_details = () => {
+const add_formula_details = (frm) => {
 	return new Promise(function(resolve, reject) {
 		const d = new frappe.ui.Dialog({
 			title: 'You selected a Formula.Please Select the required Amount & Quantity Below!',
@@ -1194,7 +1210,8 @@ const add_formula_details = () => {
 				{
 					label: 'Quantity',
 					fieldname: 'qty',
-					fieldtype: 'Float'
+					fieldtype: 'Float',
+					default: frm.doc.total_qty_formula
 				}
 			],
 			primary_action_label: 'Submit',
