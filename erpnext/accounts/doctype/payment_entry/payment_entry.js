@@ -148,6 +148,16 @@ frappe.ui.form.on('Payment Entry', {
 				filters: filters
 			};
 		});
+
+		// add filters for modes of payment
+		frm.set_query("mode_of_payment", function(doc) {
+			return {
+				query: 'feeds.custom_methods.payment_entry.filter_payment_modes',
+				filters: {
+					user: frappe.session.user
+				}
+			}
+		});
 	},
 
 	refresh: function(frm) {
