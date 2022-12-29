@@ -795,11 +795,12 @@ frappe.ui.form.on('Sales Invoice', {
 						})
 
 						// add the mixing charge
+						let formula_total_mixing_amt = total_qty * res.message.mixing_charge_rate
 						var row = frappe.model.add_child(frm.doc, "Formula Details", "formula_details");
 						row.item_code = "Mixing Charge Item Per UoM"
-						row.qty = total_qty
-						row.rate = res.message.mixing_charge_rate
-						row.amount = row.qty * row.rate
+						row.qty = 1
+						row.rate = formula_total_mixing_amt
+						row.amount = formula_total_mixing_amt
 						row.description = "Mixing Charge";
 						row.uom = "Kg"
 
@@ -861,9 +862,11 @@ frappe.ui.form.on('Sales Invoice', {
 					row.qty = calculated_qty
 					row.rate = item.rate;
 					row.amount = calculated_qty * item.rate;
-					// items below should be modified accordingly
+					// items below should be modified accordingly hardcode for now
 					row.uom = "Kg";
-					row.income_account = "Cost of Goods Sold - GF";
+					row.income_account = "Sales - GF";
+					row.expense_account = "Cost of Goods Sold - GF";
+					row.warehouse = "Stores - GF";
 
 					// calculate total qty and amount
 					total_items_qty += row.qty
@@ -875,23 +878,27 @@ frappe.ui.form.on('Sales Invoice', {
 			// add mixing charge
 			frm.doc.formula_details.forEach((item) => {
 				if(item.item_code == "Mixing Charge Item Per UoM"){
+					var mixing_charge_amount = mixing_charge_rate * total_items_qty
 					var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
 					row.item_code = item.item_code;
 					row.item_name = item.item_code;
 					row.description = item.item_code;
 					row.description = item.item_code;
-					row.qty = total_items_qty
-					row.rate = mixing_charge_rate
-					row.amount = row.qty * row.rate
-					// items below should be modified accordingly
+					row.qty = item.qty
+					row.rate = item.rate
+					row.amount = item.amount
+					// items below should be modified accordingly  hardcode for now
 					row.uom = "Kg";
-					row.income_account = "Cost of Goods Sold - GF";
+					row.income_account = "Sales - GF";
+					row.expense_account = "Cost of Goods Sold - GF";
+					row.warehouse = "Stores - GF";
 				}
 			})
 			
 
 			// set totals
 			frm.set_value("total_qty",total_items_qty)
+			frm.set_value("total_quantity_custom",total_items_qty)
 			frm.set_value("base_total",total_items_amt)
 			frm.set_value("base_net_total",total_items_amt)
 			frm.set_value("total",total_items_amt)
