@@ -1158,6 +1158,8 @@ frappe.ui.form.on('Sales Invoice', {
 		if (frm.doc.is_debit_note) {
 			frm.set_df_property('return_against', 'label', __('Adjustment Against'));
 		}
+
+		$("button[data-original-title=Print]").hide();
 	},
 
 	create_invoice_discounting: function(frm) {
