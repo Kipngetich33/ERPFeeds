@@ -1161,7 +1161,7 @@ frappe.ui.form.on('Sales Invoice', {
 			frm.set_df_property('return_against', 'label', __('Adjustment Against'));
 		}
 
-		$("button[data-original-title=Print]").hide();
+		// $("button[data-original-title=Print]").hide();
 	},
 
 	create_invoice_discounting: function(frm) {
