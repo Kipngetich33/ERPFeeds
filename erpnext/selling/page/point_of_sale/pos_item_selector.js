@@ -444,7 +444,7 @@ erpnext.PointOfSale.ItemSelector = class {
 								field: 'qty',
 								value: `+${formulaValues.qty}`,
 								item: {
-									item_code:'Mixing Charge Item Per UoM',
+									item_code:'MIXING CHARGE',
 									batch_no:undefined,
 									serial_no:undefined, 
 								}

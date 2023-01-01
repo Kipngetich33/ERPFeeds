@@ -53,6 +53,8 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 			me.frm.refresh_fields();
 		}
 		erpnext.queries.setup_warehouse_query(this.frm);
+
+		// load the default user warehouse
 	}
 
 	refresh(doc, dt, dn) {
@@ -797,11 +799,11 @@ frappe.ui.form.on('Sales Invoice', {
 						// add the mixing charge
 						let formula_total_mixing_amt = total_qty * res.message.mixing_charge_rate
 						var row = frappe.model.add_child(frm.doc, "Formula Details", "formula_details");
-						row.item_code = "Mixing Charge Item Per UoM"
+						row.item_code = "MIXING CHARGE"
 						row.qty = 1
 						row.rate = formula_total_mixing_amt
 						row.amount = formula_total_mixing_amt
-						row.description = "Mixing Charge";
+						row.description = "MIXING CHARGE";
 						row.uom = "Kg"
 
 						frm.set_value("total_amount_formula",total_amt)
@@ -842,14 +844,14 @@ frappe.ui.form.on('Sales Invoice', {
 		if(formulaValues.qty){
 			frm.set_value('items',[])
 
-			let formula_items_qty = (frm.doc.formula_details.map((x) => x.item_code != "Mixing Charge Item Per UoM" ? x.qty : 0)).reduce((x,y) => x+y,0)
+			let formula_items_qty = (frm.doc.formula_details.map((x) => x.item_code != "MIXING CHARGE" ? x.qty : 0)).reduce((x,y) => x+y,0)
 
 			let total_items_qty = 0
 			let total_items_amt = 0
 			let mixing_charge_rate = 0
 			// get item from formula tables
 			frm.doc.formula_details.forEach((item) => {
-				if(item.item_code == "Mixing Charge Item Per UoM"){
+				if(item.item_code == "MIXING CHARGE"){
 					mixing_charge_rate = item.rate
 				}else{
 					let calculated_qty = formulaValues.qty / formula_items_qty * item.qty;
@@ -877,7 +879,7 @@ frappe.ui.form.on('Sales Invoice', {
 
 			// add mixing charge
 			frm.doc.formula_details.forEach((item) => {
-				if(item.item_code == "Mixing Charge Item Per UoM"){
+				if(item.item_code == "MIXING CHARGE"){
 					var mixing_charge_amount = mixing_charge_rate * total_items_qty
 					var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
 					row.item_code = item.item_code;
