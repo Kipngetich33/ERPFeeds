@@ -79,6 +79,15 @@ class Item(Document):
 		if self.opening_stock:
 			self.set_opening_stock()
 
+	def before_save(self):
+		'''
+		Method that runs before the document is saved
+		'''
+		if self.item_group == "Materials" or self.item_group == "Additives":
+			if not self.is_stock_item:
+				self.is_stock_item = 1
+			
+
 	def validate(self):
 		if not self.item_name:
 			self.item_name = self.item_code
