@@ -394,13 +394,13 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		let blacklist = ['Purchase Invoice', 'BOM'];
 		if(this.frm.doc.docstatus===1 && !in_list(["Lost", "Stopped", "Closed"], this.frm.doc.status)
 			&& !blacklist.includes(this.frm.doctype)) {
-			this.frm.page.add_menu_item(__('Send SMS'), function() { me.send_sms(); });
+			// this.frm.page.add_menu_item(__('Send SMS'), function() { me.send_sms(); });
 		}
 	}
 
-	send_sms() {
-		var sms_man = new erpnext.SMSManager(this.frm.doc);
-	}
+	// send_sms() {
+	// 	var sms_man = new erpnext.SMSManager(this.frm.doc);
+	// }
 
 	item_code(doc, cdt, cdn) {
 		var me = this;
