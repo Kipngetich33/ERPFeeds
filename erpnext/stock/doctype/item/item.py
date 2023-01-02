@@ -86,6 +86,9 @@ class Item(Document):
 		if self.item_group == "Materials" or self.item_group == "Additives":
 			if not self.is_stock_item:
 				self.is_stock_item = 1
+		elif self.item_group == "Formula":
+			if self.is_stock_item:
+				self.is_stock_item = 0
 			
 
 	def validate(self):
