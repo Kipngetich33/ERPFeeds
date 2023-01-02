@@ -79,18 +79,23 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		// custom code 
 		cur_frm.add_custom_button(__('New Invoice'), () => {new_sales_invoice()})
 		
-		// set up correct source warehouse based on the user
+		// set user defaults
 		frappe.call({
-			"method": "feeds.custom_methods.sales_invoice.get_default_user_warehouse",
+			"method": "feeds.custom_methods.sales_invoice.get_user_defaults",
 			"args": {
 				"user": frappe.session.user
 			},
 			callback: function(res) {
-				if(res.message.status){
-					cur_frm.set_value("set_warehouse",res.message.warehouse)
+				if(res.message.default_warehouse.status){
+					cur_frm.set_value("set_warehouse",res.message.default_warehouse.warehouse)
+				}
+
+				if(res.message.default_income_account.status){
+					cur_frm.set_value("income_account",res.message.default_income_account.income_account)
 				}
 			}
 		});
+
 
 		if (doc.docstatus == 1 && doc.outstanding_amount!=0
 			&& !(cint(doc.is_return) && doc.return_against)) {
@@ -385,6 +390,8 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 	items_add(doc, cdt, cdn) {
 		var row = frappe.get_doc(cdt, cdn);
 		this.frm.script_manager.copy_from_first_row("items", row, ["income_account", "discount_account", "cost_center"]);
+		row.income_account = cur_frm.doc.income_account
+		row.expense_account = "Cost of Goods Sold - GF"
 	}
 
 	set_dynamic_labels() {
