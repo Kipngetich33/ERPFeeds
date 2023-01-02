@@ -76,7 +76,7 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		if(doc.update_stock) this.show_stock_ledger();
 
 
-		frm.add_custom_button(__('New'), () => {new_sales_invoice(frm)})
+		cur_frm.add_custom_button(__('New Invoice'), () => {new_sales_invoice()})
 
 		if (doc.docstatus == 1 && doc.outstanding_amount!=0
 			&& !(cint(doc.is_return) && doc.return_against)) {
@@ -1387,5 +1387,5 @@ const confirm_formula_save = (frm) => {
 }
 
 const new_sales_invoice = () => {
-
+	frappe.set_route("Form", "Sales Invoice","new-sales-invoice-1")
 }
