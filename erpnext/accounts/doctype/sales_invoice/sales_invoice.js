@@ -76,7 +76,22 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		if(doc.update_stock) this.show_stock_ledger();
 
 
+		// custom code 
 		cur_frm.add_custom_button(__('New Invoice'), () => {new_sales_invoice()})
+		
+		// set up correct source warehouse based on the user
+		frappe.call({
+			"method": "feeds.custom_methods.sales_invoice.get_default_user_warehouse",
+			"args": {
+				"user": frappe.session.user
+			},
+			callback: function(res) {
+				console.log(res)
+				if(res.message.status){
+					cur_frm.set_value("set_warehouse",res.message.warehouse)
+				}
+			}
+		});
 
 		if (doc.docstatus == 1 && doc.outstanding_amount!=0
 			&& !(cint(doc.is_return) && doc.return_against)) {
