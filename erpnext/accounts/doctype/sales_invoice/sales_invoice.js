@@ -31,6 +31,8 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		}
 	}
 	onload() {
+		console.log("Onload called ...................")
+
 		var me = this;
 		super.onload();
 
@@ -58,6 +60,10 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 	}
 
 	refresh(doc, dt, dn) {
+		console.log("Refresh called ...................")
+
+		// window.location.reload();
+
 		const me = this;
 		super.refresh();
 		if(cur_frm.msgbox && cur_frm.msgbox.$wrapper.is(":visible")) {
@@ -158,6 +164,7 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		// 		}, __('Create'));
 		// 	}
 		// }
+
 	}
 
 	make_maintenance_schedule() {

@@ -161,6 +161,9 @@ frappe.ui.form.on('Payment Entry', {
 	},
 
 	refresh: function(frm) {
+		// add button to print sales invoice
+		frm.add_custom_button(__('Sales Invoice'), () => {back_to_sales_invoice(frm)})
+
 		erpnext.hide_company();
 		frm.events.hide_unhide_fields(frm);
 		frm.events.set_dynamic_labels(frm);
@@ -1429,3 +1432,22 @@ frappe.ui.form.on('Payment Entry', {
 		}
 	},
 })
+
+
+const back_to_sales_invoice = (frm) => {
+
+	console.log("Back to sales invoice")
+	let refs = frm.doc.references
+	console.log(refs)
+	if(refs.length > 0){
+		let first_ref = refs[0]
+		if(first_ref.reference_doctype == "Sales Invoice"){
+			frappe.route_options = {"data_reload": "1"};
+			frappe.set_route("Form","Sales Invoice",first_ref.reference_name)
+		}else{
+			frappe.throw("The defined payment reference is not a Sales Invoice")
+		}
+	}else{
+		frappe.throw("There are no defined payment references")
+	}
+}
