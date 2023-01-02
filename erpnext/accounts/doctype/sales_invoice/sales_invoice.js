@@ -31,8 +31,6 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		}
 	}
 	onload() {
-		console.log("Onload called ...................")
-
 		var me = this;
 		super.onload();
 
@@ -60,10 +58,6 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 	}
 
 	refresh(doc, dt, dn) {
-		console.log("Refresh called ...................")
-
-		// window.location.reload();
-
 		const me = this;
 		super.refresh();
 		if(cur_frm.msgbox && cur_frm.msgbox.$wrapper.is(":visible")) {
@@ -80,6 +74,9 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		this.show_general_ledger();
 
 		if(doc.update_stock) this.show_stock_ledger();
+
+
+		frm.add_custom_button(__('New'), () => {new_sales_invoice(frm)})
 
 		if (doc.docstatus == 1 && doc.outstanding_amount!=0
 			&& !(cint(doc.is_return) && doc.return_against)) {
@@ -941,6 +938,7 @@ frappe.ui.form.on('Sales Invoice', {
 		});
 
 		if(product_bundle_saved.message.status){
+			frm.set_value('customer_formulas',product_bundle_saved.message.formula)
 			frappe.msgprint("Successfully saved formula")
 		}else{
 			frappe.throw(product_bundle_saved.message.message)
@@ -1388,4 +1386,6 @@ const confirm_formula_save = (frm) => {
 	})
 }
 
+const new_sales_invoice = () => {
 
+}
