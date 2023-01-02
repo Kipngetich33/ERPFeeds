@@ -86,7 +86,6 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 				"user": frappe.session.user
 			},
 			callback: function(res) {
-				console.log(res)
 				if(res.message.status){
 					cur_frm.set_value("set_warehouse",res.message.warehouse)
 				}
@@ -820,10 +819,13 @@ frappe.ui.form.on('Sales Invoice', {
 						var row = frappe.model.add_child(frm.doc, "Formula Details", "formula_details");
 						row.item_code = "MIXING CHARGE"
 						row.qty = 1
-						row.rate = formula_total_mixing_amt
-						row.amount = formula_total_mixing_amt
+						row.rate = res.message.mixing_charge_rate
+						row.amount = row.qty * row.rate
 						row.description = "MIXING CHARGE";
-						row.uom = "Kg"
+						row.uom = "Service Charge"
+						// add mixing charge amount
+						total_amt += row.amount
+
 
 						frm.set_value("total_amount_formula",total_amt)
 						frm.set_value("total_qty_formula",total_qty)
@@ -872,6 +874,25 @@ frappe.ui.form.on('Sales Invoice', {
 			frm.doc.formula_details.forEach((item) => {
 				if(item.item_code == "MIXING CHARGE"){
 					mixing_charge_rate = item.rate
+
+					// var mixing_charge_amount = mixing_charge_rate * total_items_qty
+					var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
+					row.item_code = item.item_code;
+					row.item_name = item.item_code;
+					row.description = item.item_code;
+					row.description = item.item_code;
+					// row.qty = item.qty
+					row.qty = 1
+					row.rate = item.rate
+					// row.amount = item.amount
+					row.amount = row.qty * row.rate
+					// items below should be modified accordingly  hardcode for now
+					row.uom = "Service Charge";
+					row.income_account = "Sales - GF";
+					row.expense_account = "Cost of Goods Sold - GF";
+					row.warehouse = "Stores - GF";
+
+
 				}else{
 					let calculated_qty = formulaValues.qty / formula_items_qty * item.qty;
 					// define qty as string				
@@ -897,24 +918,26 @@ frappe.ui.form.on('Sales Invoice', {
 			}) 
 
 			// add mixing charge
-			frm.doc.formula_details.forEach((item) => {
-				if(item.item_code == "MIXING CHARGE"){
-					var mixing_charge_amount = mixing_charge_rate * total_items_qty
-					var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
-					row.item_code = item.item_code;
-					row.item_name = item.item_code;
-					row.description = item.item_code;
-					row.description = item.item_code;
-					row.qty = item.qty
-					row.rate = item.rate
-					row.amount = item.amount
-					// items below should be modified accordingly  hardcode for now
-					row.uom = "Kg";
-					row.income_account = "Sales - GF";
-					row.expense_account = "Cost of Goods Sold - GF";
-					row.warehouse = "Stores - GF";
-				}
-			})
+			// frm.doc.formula_details.forEach((item) => {
+			// 	if(item.item_code == "MIXING CHARGE"){
+			// 		// var mixing_charge_amount = mixing_charge_rate * total_items_qty
+			// 		var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
+			// 		row.item_code = item.item_code;
+			// 		row.item_name = item.item_code;
+			// 		row.description = item.item_code;
+			// 		row.description = item.item_code;
+			// 		// row.qty = item.qty
+			// 		row.qty = 1
+			// 		row.rate = item.rate
+			// 		// row.amount = item.amount
+			// 		row.amount = row.qty * row.rate
+			// 		// items below should be modified accordingly  hardcode for now
+			// 		row.uom = "Service Charge";
+			// 		row.income_account = "Sales - GF";
+			// 		row.expense_account = "Cost of Goods Sold - GF";
+			// 		row.warehouse = "Stores - GF";
+			// 	}
+			// })
 			
 
 			// set totals
