@@ -388,6 +388,7 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 	}
 
 	items_add(doc, cdt, cdn) {
+		console.log('Add accounts ..................................')
 		var row = frappe.get_doc(cdt, cdn);
 		this.frm.script_manager.copy_from_first_row("items", row, ["income_account", "discount_account", "cost_center"]);
 		row.income_account = cur_frm.doc.income_account
@@ -564,9 +565,14 @@ cur_frm.fields_dict.write_off_cost_center.get_query = function(doc) {
 // Income Account in Details Table
 // --------------------------------
 cur_frm.set_query("income_account", "items", function(doc) {
+	// return{
+	// 	query: "erpnext.controllers.queries.get_income_account",
+	// 	filters: {'company': doc.company}
+	// }
+
 	return{
-		query: "erpnext.controllers.queries.get_income_account",
-		filters: {'company': doc.company}
+		query: "feeds.custom_methods.sales_invoice.filter_user_income_account",
+		filters: {'user': frappe.session.user}
 	}
 });
 
@@ -895,10 +901,6 @@ frappe.ui.form.on('Sales Invoice', {
 					row.amount = row.qty * row.rate
 					// items below should be modified accordingly  hardcode for now
 					row.uom = "Service Charge";
-					row.income_account = "Sales - GF";
-					row.expense_account = "Cost of Goods Sold - GF";
-					row.warehouse = "Stores - GF";
-
 
 				}else{
 					let calculated_qty = formulaValues.qty / formula_items_qty * item.qty;
@@ -913,15 +915,17 @@ frappe.ui.form.on('Sales Invoice', {
 					row.amount = calculated_qty * item.rate;
 					// items below should be modified accordingly hardcode for now
 					row.uom = "Kg";
-					row.income_account = "Sales - GF";
-					row.expense_account = "Cost of Goods Sold - GF";
-					row.warehouse = "Stores - GF";
 
 					// calculate total qty and amount
 					total_items_qty += row.qty
 					total_items_amt += row.amount
 					
 				}
+
+				row.income_account = cur_frm.doc.income_account;
+				row.expense_account = "Cost of Goods Sold - GF";
+				row.warehouse = cur_frm.doc.set_warehouse;
+				
 			}) 
 
 			// add mixing charge
