@@ -711,8 +711,7 @@
    "hide_seconds": 1,
    "oldfieldname": "entries",
    "oldfieldtype": "Table",
-   "options": "Sales Invoice Item",
-   "reqd": 1
+   "options": "Sales Invoice Item"
   },
   {
    "fieldname": "pricing_rule_details",
@@ -2109,7 +2108,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2022-10-11 13:07:36.488095",
+ "modified": "2023-01-02 15:48:00.204684",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",
@@ -2155,7 +2154,6 @@
    "role": "All"
   }
  ],
- "quick_entry": 1,
  "search_fields": "posting_date, due_date, customer, base_grand_total, outstanding_amount",
  "show_name_in_global_search": 1,
  "sort_field": "modified",
