@@ -83,6 +83,10 @@ class SalesInvoice(SellingController):
 			self.indicator_title = _("Paid")
 
 	def validate(self):
+		# cannot save an empty items table
+		if len(self.items) == 0:
+			frappe.throw("Materials table is a required field")
+
 		super(SalesInvoice, self).validate()
 		self.validate_auto_set_posting_time()
 
