@@ -827,7 +827,7 @@ frappe.ui.form.on('Sales Invoice', {
 						frm.set_value('formula_details',[])
 						res.message.bundle_items.forEach((item) => {
 							var row = frappe.model.add_child(frm.doc, "Formula Details", "formula_details");
-							row.item_code = item.item_code;
+							row.material = item.item_code;
 							row.qty = item.qty;
 							row.rate = item.rate
 							row.amount = item.qty * item.rate
@@ -841,7 +841,7 @@ frappe.ui.form.on('Sales Invoice', {
 						// add the mixing charge
 						let formula_total_mixing_amt = total_qty * res.message.mixing_charge_rate
 						var row = frappe.model.add_child(frm.doc, "Formula Details", "formula_details");
-						row.item_code = "MIXING CHARGE"
+						row.material = "MIXING CHARGE"
 						row.qty = 1
 						row.rate = res.message.mixing_charge_rate
 						row.amount = row.qty * row.rate
@@ -896,15 +896,15 @@ frappe.ui.form.on('Sales Invoice', {
 			let mixing_charge_rate = 0
 			// get item from formula tables
 			frm.doc.formula_details.forEach((item) => {
-				if(item.item_code == "MIXING CHARGE"){
+				if(item.material == "MIXING CHARGE"){
 					mixing_charge_rate = item.rate
 
 					// var mixing_charge_amount = mixing_charge_rate * total_items_qty
 					var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
-					row.item_code = item.item_code;
-					row.item_name = item.item_code;
-					row.description = item.item_code;
-					row.description = item.item_code;
+					row.item_code = item.material;
+					row.item_name = item.material;
+					row.description = item.material;
+					row.description = item.material;
 					// row.qty = item.qty
 					row.qty = 1
 					row.rate = item.rate
@@ -917,10 +917,10 @@ frappe.ui.form.on('Sales Invoice', {
 					let calculated_qty = formulaValues.qty / formula_items_qty * item.qty;
 					// define qty as string				
 					var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
-					row.item_code = item.item_code;
-					row.item_name = item.item_code;
-					row.description = item.item_code;
-					row.description = item.item_code;
+					row.item_code = item.material;
+					row.item_name = item.material;
+					row.description = item.material;
+					row.description = item.material;
 					row.qty = calculated_qty
 					row.rate = item.rate;
 					row.amount = calculated_qty * item.rate;
@@ -1337,17 +1337,15 @@ const add_formula_details = (frm) => {
 
 // Functions called on change of formula
 frappe.ui.form.on("Formula Details", {
-	item_code: function(frm, cdt, cdn) {
-		console.log("Item code has been selected ............")
+	material: function(frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
 		frappe.call({
 			method: "feeds.custom_methods.sales_invoice.get_item_price",
 			args: {
-				"item_code": row.item_code
+				"item_code": row.material
 			},
 			callback: function(res) {
 				if (res) {
-					console.log(res)
 					let price_details = res.message
 					if(price_details.status){
 						row.qty = 1
@@ -1357,7 +1355,10 @@ frappe.ui.form.on("Formula Details", {
 						let total_qty = 0
 						let total_amt = 0
 						frm.doc.formula_details.forEach((row) => {
-							total_qty += row.qty
+							// exclude amount for mixing charge
+							if(row.material != "MIXING CHARGE"){
+								total_qty += row.qty
+							}
 							total_amt += row.amount
 						})
 						frm.set_value("total_qty_formula",total_qty)
@@ -1374,8 +1375,6 @@ frappe.ui.form.on("Formula Details", {
 
 frappe.ui.form.on("Formula Details", {
 	qty: function(frm, cdt, cdn) {
-		console.log("Item qty is being changed ............")
-
 		let total_qty = 0
 		let total_amt = 0
 		frm.doc.formula_details.forEach((row) => {
@@ -1391,7 +1390,6 @@ frappe.ui.form.on("Formula Details", {
 
 frappe.ui.form.on("Formula Details", {
 	rate: function(frm, cdt, cdn) {
-		console.log("Rate selected............")
 		let total_qty = 0
 		let total_amt = 0
 		frm.doc.formula_details.forEach((row) => {
