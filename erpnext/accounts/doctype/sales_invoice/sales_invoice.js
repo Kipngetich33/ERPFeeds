@@ -870,25 +870,8 @@ frappe.ui.form.on('Sales Invoice', {
 	apply_formula: async (frm) => {
 		let formulaValues = await  add_formula_details(frm)
 
-		// check if the selected item is a product bundle
-		let product_bundle_check = await frappe.call({
-			method: 'erpnext.selling.page.point_of_sale.point_of_sale.get_product_bundle_n_prices',
-			args: {
-				item_code: frm.doc.customer_formulas
-			},
-			callback: (res) => {
-				return res
-			}
-		});
-
-		let product_bundle;
-		if(product_bundle_check.message.status){
-			product_bundle = product_bundle_check.message
-		}
-
 		if(formulaValues.qty){
 			frm.set_value('items',[])
-
 			let formula_items_qty = (frm.doc.formula_details.map((x) => x.item_code != "MIXING CHARGE" ? x.qty : 0)).reduce((x,y) => x+y,0)
 
 			let total_items_qty = 0
@@ -896,79 +879,34 @@ frappe.ui.form.on('Sales Invoice', {
 			let mixing_charge_rate = 0
 			// get item from formula tables
 			frm.doc.formula_details.forEach((item) => {
+
+				var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
+				row.item_code = item.material;
+				row.item_name = item.material;
+				row.description = item.material;
+				row.description = item.material;
+				row.qty = item.qty
+				row.rate = item.rate;
+				row.amount = item.amount;
+				// items below should be modified accordingly hardcode for now
+				row.uom = "Kg";
+
 				if(item.material == "MIXING CHARGE"){
-					mixing_charge_rate = item.rate
-
-					// var mixing_charge_amount = mixing_charge_rate * total_items_qty
-					var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
-					row.item_code = item.material;
-					row.item_name = item.material;
-					row.description = item.material;
-					row.description = item.material;
-					// row.qty = item.qty
-					row.qty = 1
-					row.rate = item.rate
-					// row.amount = item.amount
-					row.amount = row.qty * row.rate
-					// items below should be modified accordingly  hardcode for now
 					row.uom = "Service Charge";
-
-				}else{
-					let calculated_qty = formulaValues.qty / formula_items_qty * item.qty;
-					// define qty as string				
-					var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
-					row.item_code = item.material;
-					row.item_name = item.material;
-					row.description = item.material;
-					row.description = item.material;
-					row.qty = calculated_qty
-					row.rate = item.rate;
-					row.amount = calculated_qty * item.rate;
-					// items below should be modified accordingly hardcode for now
-					row.uom = "Kg";
-
-					// calculate total qty and amount
-					total_items_qty += row.qty
-					total_items_amt += row.amount
-					
 				}
-
+				
 				row.income_account = cur_frm.doc.income_account;
 				row.expense_account = "Cost of Goods Sold - GF";
 				row.warehouse = cur_frm.doc.set_warehouse;
 				
 			}) 
 
-			// add mixing charge
-			// frm.doc.formula_details.forEach((item) => {
-			// 	if(item.item_code == "MIXING CHARGE"){
-			// 		// var mixing_charge_amount = mixing_charge_rate * total_items_qty
-			// 		var row = frappe.model.add_child(frm.doc, "Sales Invoice Item", "items");
-			// 		row.item_code = item.item_code;
-			// 		row.item_name = item.item_code;
-			// 		row.description = item.item_code;
-			// 		row.description = item.item_code;
-			// 		// row.qty = item.qty
-			// 		row.qty = 1
-			// 		row.rate = item.rate
-			// 		// row.amount = item.amount
-			// 		row.amount = row.qty * row.rate
-			// 		// items below should be modified accordingly  hardcode for now
-			// 		row.uom = "Service Charge";
-			// 		row.income_account = "Sales - GF";
-			// 		row.expense_account = "Cost of Goods Sold - GF";
-			// 		row.warehouse = "Stores - GF";
-			// 	}
-			// })
-			
-
 			// set totals
-			frm.set_value("total_qty",total_items_qty)
-			frm.set_value("total_quantity_custom",total_items_qty)
-			frm.set_value("base_total",total_items_amt)
-			frm.set_value("base_net_total",total_items_amt)
-			frm.set_value("total",total_items_amt)
-			frm.set_value("net_total",total_items_amt)
+			frm.set_value("total_quantity_custom",cur_frm.doc.total_qty_formula)
+			frm.set_value("base_total",cur_frm.doc.total_amount_formula)
+			frm.set_value("base_net_total",cur_frm.doc.total_amount_formula)
+			frm.set_value("total",cur_frm.doc.total_amount_formula)
+			frm.set_value("net_total",cur_frm.doc.total_amount_formula)
 		}
 		frm.refresh_fields();
 	},
