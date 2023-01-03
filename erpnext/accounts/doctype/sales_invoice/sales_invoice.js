@@ -1288,6 +1288,7 @@ frappe.ui.form.on("Formula Details", {
 					if(price_details.status){
 						row.qty = 1
 						row.rate = price_details.amount
+						row.amount = row.qty * row.rate
 
 						// calculate total qty
 						let total_qty = 0
