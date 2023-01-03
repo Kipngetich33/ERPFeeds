@@ -400,7 +400,6 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 	}
 
 	items_add(doc, cdt, cdn) {
-		console.log('Add accounts ..................................')
 		var row = frappe.get_doc(cdt, cdn);
 		this.frm.script_manager.copy_from_first_row("items", row, ["income_account", "discount_account", "cost_center"]);
 		row.income_account = cur_frm.doc.income_account
@@ -1339,6 +1338,7 @@ const add_formula_details = (frm) => {
 // Functions called on change of formula
 frappe.ui.form.on("Formula Details", {
 	item_code: function(frm, cdt, cdn) {
+		console.log("Item code has been selected ............")
 		let row = locals[cdt][cdn];
 		frappe.call({
 			method: "feeds.custom_methods.sales_invoice.get_item_price",
@@ -1347,6 +1347,7 @@ frappe.ui.form.on("Formula Details", {
 			},
 			callback: function(res) {
 				if (res) {
+					console.log(res)
 					let price_details = res.message
 					if(price_details.status){
 						row.qty = 1
@@ -1373,6 +1374,8 @@ frappe.ui.form.on("Formula Details", {
 
 frappe.ui.form.on("Formula Details", {
 	qty: function(frm, cdt, cdn) {
+		console.log("Item qty is being changed ............")
+
 		let total_qty = 0
 		let total_amt = 0
 		frm.doc.formula_details.forEach((row) => {
@@ -1388,6 +1391,7 @@ frappe.ui.form.on("Formula Details", {
 
 frappe.ui.form.on("Formula Details", {
 	rate: function(frm, cdt, cdn) {
+		console.log("Rate selected............")
 		let total_qty = 0
 		let total_amt = 0
 		frm.doc.formula_details.forEach((row) => {
