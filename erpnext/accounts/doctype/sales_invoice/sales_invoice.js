@@ -400,10 +400,15 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 	}
 
 	items_add(doc, cdt, cdn) {
-		var row = frappe.get_doc(cdt, cdn);
-		this.frm.script_manager.copy_from_first_row("items", row, ["income_account", "discount_account", "cost_center"]);
-		row.income_account = cur_frm.doc.income_account
-		row.expense_account = "Cost of Goods Sold - GF"
+		if(!cur_frm.doc.income_account){
+			cur_frm.set_value("items",[])
+			frappe.throw("Please select Income Account in order to continue")
+		}else{
+			var row = frappe.get_doc(cdt, cdn);
+			this.frm.script_manager.copy_from_first_row("items", row, ["income_account", "discount_account", "cost_center"]);
+			row.income_account = cur_frm.doc.income_account
+			row.expense_account = "Cost of Goods Sold - GF"
+		}
 	}
 
 	set_dynamic_labels() {
@@ -576,15 +581,15 @@ cur_frm.fields_dict.write_off_cost_center.get_query = function(doc) {
 // Income Account in Details Table
 // --------------------------------
 cur_frm.set_query("income_account", "items", function(doc) {
-	// return{
-	// 	query: "erpnext.controllers.queries.get_income_account",
-	// 	filters: {'company': doc.company}
-	// }
-
 	return{
-		query: "feeds.custom_methods.sales_invoice.filter_user_income_account",
-		filters: {'user': frappe.session.user}
+		query: "erpnext.controllers.queries.get_income_account",
+		filters: {'company': doc.company}
 	}
+
+	// return{
+	// 	query: "feeds.custom_methods.sales_invoice.filter_user_income_account",
+	// 	filters: {'user': frappe.session.user}
+	// }
 });
 
 // Cost Center in Details Table
@@ -868,6 +873,10 @@ frappe.ui.form.on('Sales Invoice', {
 	},
 
 	apply_formula: async (frm) => {
+		if(!cur_frm.doc.income_account || !cur_frm.doc.set_warehouse){
+			frappe.throw("Please select Source Warehouse and Income Account in order to continue.")
+		}
+
 		let formulaValues = await  add_formula_details(frm)
 
 		if(formulaValues.qty){

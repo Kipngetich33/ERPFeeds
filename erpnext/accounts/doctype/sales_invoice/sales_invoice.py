@@ -41,6 +41,8 @@ from erpnext.stock.doctype.serial_no.serial_no import (
 	update_serial_nos_after_submit,
 )
 
+from erpnext.accounts.utils import get_balance_on
+
 form_grid_templates = {"items": "templates/form_grid/item_grid.html"}
 
 
