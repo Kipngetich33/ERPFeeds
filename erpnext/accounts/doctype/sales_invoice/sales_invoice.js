@@ -875,10 +875,6 @@ frappe.ui.form.on('Sales Invoice', {
 			frm.set_value('items',[])
 			let formula_items_qty = (frm.doc.formula_details.map((x) => x.item_code != "MIXING CHARGE" ? x.qty : 0)).reduce((x,y) => x+y,0)
 
-			let total_items_qty = 0
-			let total_items_amt = 0
-			let mixing_charge_rate = 0
-
 			// get item from formula tables
 			frm.doc.formula_details.forEach((item) => {
 
@@ -907,7 +903,7 @@ frappe.ui.form.on('Sales Invoice', {
 			}) 
 
 			// set totals
-			frm.set_value("total_quantity_custom",cur_frm.doc.total_qty_formula)
+			frm.set_value("total_quantity_custom",formulaValues.qty)
 			frm.set_value("base_total",cur_frm.doc.total_amount_formula)
 			frm.set_value("base_net_total",cur_frm.doc.total_amount_formula)
 			frm.set_value("total",cur_frm.doc.total_amount_formula)
