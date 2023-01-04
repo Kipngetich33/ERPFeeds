@@ -1,0 +1,33 @@
+{
+ "aggregate_function_based_on": "base_received_amount",
+ "chart_name": "Incoming Payments Today",
+ "chart_type": "Group By",
+ "creation": "2023-01-02 15:24:57.771416",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart",
+ "document_type": "Payment Entry",
+ "filters_json": "[]",
+ "group_by_based_on": "mode_of_payment",
+ "group_by_type": "Sum",
+ "idx": 0,
+ "is_public": 1,
+ "is_standard": 1,
+ "last_synced_on": "2023-01-04 16:21:00.830196",
+ "modified": "2023-01-04 16:22:19.105386",
+ "modified_by": "Administrator",
+ "module": "Accounts",
+ "name": "Incoming Payments Today",
+ "number_of_groups": 0,
+ "owner": "Administrator",
+ "roles": [
+  {
+   "role": "Accountant - Glen"
+  }
+ ],
+ "time_interval": "Monthly",
+ "timeseries": 0,
+ "timespan": "Last Year",
+ "type": "Bar",
+ "use_report_chart": 0,
+ "y_axis": []
+}
