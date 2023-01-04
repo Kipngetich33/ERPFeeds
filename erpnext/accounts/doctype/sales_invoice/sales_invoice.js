@@ -871,12 +871,14 @@ frappe.ui.form.on('Sales Invoice', {
 		let formulaValues = await  add_formula_details(frm)
 
 		if(formulaValues.qty){
+
 			frm.set_value('items',[])
 			let formula_items_qty = (frm.doc.formula_details.map((x) => x.item_code != "MIXING CHARGE" ? x.qty : 0)).reduce((x,y) => x+y,0)
 
 			let total_items_qty = 0
 			let total_items_amt = 0
 			let mixing_charge_rate = 0
+
 			// get item from formula tables
 			frm.doc.formula_details.forEach((item) => {
 
@@ -885,16 +887,19 @@ frappe.ui.form.on('Sales Invoice', {
 				row.item_name = item.material;
 				row.description = item.material;
 				row.description = item.material;
-				row.qty = item.qty
-				row.rate = item.rate;
-				row.amount = item.amount;
-				// items below should be modified accordingly hardcode for now
-				row.uom = "Kg";
 
 				if(item.material == "MIXING CHARGE"){
+					row.qty =  1
 					row.uom = "Service Charge";
+
+				}else{
+					row.qty =  formulaValues.qty / cur_frm.doc.total_qty_formula * item.qty
 				}
 				
+				row.rate = item.rate;
+				row.amount = row.qty * row.rate
+				// items below should be modified accordingly hardcode for now
+				row.uom = "Kg";
 				row.income_account = cur_frm.doc.income_account;
 				row.expense_account = "Cost of Goods Sold - GF";
 				row.warehouse = cur_frm.doc.set_warehouse;
@@ -907,6 +912,7 @@ frappe.ui.form.on('Sales Invoice', {
 			frm.set_value("base_net_total",cur_frm.doc.total_amount_formula)
 			frm.set_value("total",cur_frm.doc.total_amount_formula)
 			frm.set_value("net_total",cur_frm.doc.total_amount_formula)
+
 		}
 		frm.refresh_fields();
 	},
