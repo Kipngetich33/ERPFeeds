@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // License: GNU General Public License v3. See license.txt
 
-{% include 'erpnext/selling/sales_common.js' %};
+{% include 'erpnext/selling/sales_common_custom.js' %};
 frappe.provide("erpnext.accounts");
 
 
