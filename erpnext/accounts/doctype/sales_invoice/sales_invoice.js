@@ -603,6 +603,7 @@ cur_frm.fields_dict["items"].grid.get_field("cost_center").get_query = function(
 	}
 }
 
+
 cur_frm.cscript.income_account = function(doc, cdt, cdn) {
 	erpnext.utils.copy_value_in_all_rows(doc, cdt, cdn, "items", "income_account");
 }
@@ -637,12 +638,12 @@ cur_frm.set_query("asset", "items", function(doc, cdt, cdn) {
 	}
 });
 
-// set quety for customer formulas
-cur_frm.set_query('customer_formulas', function(doc) {
+cur_frm.set_query("material", "formula_details", function(doc, cdt, cdn) {
+	var d = locals[cdt][cdn];
 	return {
-		filters: {
-			linked_customer: doc.customer,
-		}
+		filters: [
+			["Item", "item_group", "=", "Materials"]
+		]
 	}
 });
 
