@@ -447,8 +447,6 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		}
 	}
 
-
-
 	is_pos(frm){
 		this.set_pos_data();
 	}
@@ -642,7 +640,7 @@ cur_frm.set_query("material", "formula_details", function(doc, cdt, cdn) {
 	var d = locals[cdt][cdn];
 	return {
 		filters: [
-			["Item", "item_group", "=", "Materials"]
+			["Item", "item_group", "in", ["Materials","Additives"]]
 		]
 	}
 });
