@@ -624,6 +624,18 @@ cur_frm.set_query("debit_to", function(doc) {
 	}
 });
 
+cur_frm.set_query("customer_formulas", function(doc) {
+	if(!cur_frm.doc.customer) {
+		frappe.throw(_('Please select a customer'));
+	}
+
+	return {
+		filters: {
+			'linked_customer': cur_frm.doc.customer
+		}
+	}
+});
+
 cur_frm.set_query("asset", "items", function(doc, cdt, cdn) {
 	var d = locals[cdt][cdn];
 	return {
