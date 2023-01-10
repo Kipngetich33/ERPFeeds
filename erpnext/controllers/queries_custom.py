@@ -267,7 +267,7 @@ def item_query(doctype, txt, searchfield, start, page_len, filters, as_dict=Fals
 		where tabItem.docstatus < 2
 			and tabItem.disabled=0
 			and tabItem.has_variants=0
-			and (tabItem.item_group = "Materials" or tabItem.item_group = "Additives")
+			and (tabItem.item_group = "Materials" or tabItem.item_group = "Additives" or tabItem.item_group = "MIXING CHARGE" )
 			and (tabItem.end_of_life > %(today)s or ifnull(tabItem.end_of_life, '0000-00-00')='0000-00-00')
 			and ({scond} or tabItem.item_code IN (select parent from `tabItem Barcode` where barcode LIKE %(txt)s)
 				{description_cond})
