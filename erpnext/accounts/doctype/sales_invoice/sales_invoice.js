@@ -840,8 +840,10 @@ frappe.ui.form.on('Sales Invoice', {
 				},
 				callback: function(res) {
 					if (res) {
-						frm.set_value('formula_details',[])
-						res.message.bundle_items.forEach((item) => {
+						let productBundleItems = res.message.bundle_items
+						let sortedItems = productBundleItems?.sort((a, b) => (a.idx > b.idx ? 1 : -1))
+
+						sortedItems.forEach((item) => {
 							var row = frappe.model.add_child(frm.doc, "Formula Details", "formula_details");
 							row.material = item.item_code;
 							row.qty = item.qty;
@@ -942,7 +944,7 @@ frappe.ui.form.on('Sales Invoice', {
 		if(frm.doc.formula_details.length == 0){
 			frappe.throw('You have not added any materials on the formula table.')
 		}
-		
+
 		let confirmed_values = await confirm_formula_save(frm)
 
 		// await for formula to save
