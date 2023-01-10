@@ -840,6 +840,10 @@ frappe.ui.form.on('Sales Invoice', {
 				},
 				callback: function(res) {
 					if (res) {
+						// clear the previous table items
+						cur_frm.set_value("formula_details",[])
+
+						// sort formula in correct order
 						let productBundleItems = res.message.bundle_items
 						let sortedItems = productBundleItems?.sort((a, b) => (a.idx > b.idx ? 1 : -1))
 
