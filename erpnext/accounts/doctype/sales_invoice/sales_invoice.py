@@ -2,7 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 
-import frappe
+import frappe,math
 from frappe import _, msgprint, throw
 from frappe.contacts.doctype.address.address import get_address_display
 from frappe.model.mapper import get_mapped_doc
@@ -238,6 +238,11 @@ class SalesInvoice(SellingController):
 
 	def before_save(self):
 		set_account_for_mode_of_payment(self)
+		# calculate correct due amount
+		total_due = math.ceil(self.base_grand_total)
+		if self.total_due != total_due:
+			self.total_due = total_due
+		
 
 	def on_submit(self):
 		self.validate_pos_paid_amount()
