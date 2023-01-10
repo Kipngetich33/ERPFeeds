@@ -856,22 +856,12 @@ frappe.ui.form.on('Sales Invoice', {
 							row.description = item.description;
 							row.uom = item.uom;
 
-							total_qty += row.qty
+							if(item.item_code != "MIXING CHARGE"){
+								total_qty += row.qty
+							}
+
 							total_amt += row.amount
 						})
-
-						// add the mixing charge
-						let formula_total_mixing_amt = total_qty * res.message.mixing_charge_rate
-						var row = frappe.model.add_child(frm.doc, "Formula Details", "formula_details");
-						row.material = "MIXING CHARGE"
-						row.qty = 1
-						row.rate = res.message.mixing_charge_rate
-						row.amount = row.qty * row.rate
-						row.description = "MIXING CHARGE";
-						row.uom = "Service Charge"
-						// add mixing charge amount
-						total_amt += row.amount
-
 
 						frm.set_value("total_amount_formula",total_amt)
 						frm.set_value("total_qty_formula",total_qty)
