@@ -230,7 +230,7 @@
    "type": "Link"
   }
  ],
- "modified": "2023-01-04 15:49:55.077617",
+ "modified": "2023-01-09 09:38:15.720032",
  "modified_by": "Administrator",
  "module": "Setup",
  "name": "Home",
@@ -240,7 +240,7 @@
  "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
- "sequence_id": 6.0,
+ "sequence_id": 7.0,
  "shortcuts": [
   {
    "label": "Item",
