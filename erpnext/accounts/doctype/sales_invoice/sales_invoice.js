@@ -880,6 +880,7 @@ frappe.ui.form.on('Sales Invoice', {
 	},
 
 	apply_formula: async (frm) => {
+		
 		if(!cur_frm.doc.income_account || !cur_frm.doc.set_warehouse){
 			frappe.throw("Please select Source Warehouse and Income Account in order to continue.")
 		}
