@@ -43,6 +43,9 @@ from erpnext.stock.doctype.serial_no.serial_no import (
 
 from erpnext.accounts.utils import get_balance_on
 
+# use custom method to get outstaning amount
+from feeds.custom_methods.sales_invoice import get_customer_outstanding
+
 form_grid_templates = {"items": "templates/form_grid/item_grid.html"}
 
 
@@ -242,7 +245,11 @@ class SalesInvoice(SellingController):
 		total_due = math.ceil(self.base_grand_total)
 		if self.total_due != total_due:
 			self.total_due = total_due
-		
+
+		# calculate correct outstanding balance
+		updated_outstanding_bal = get_customer_outstanding(self.customer,self.company,True)
+		print(updated_outstanding_bal)
+		self.outstanding_amount_custom = updated_outstanding_bal
 
 	def on_submit(self):
 		self.validate_pos_paid_amount()
