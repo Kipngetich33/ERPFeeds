@@ -31,6 +31,8 @@ from erpnext.controllers.accounts_controller import (
 )
 from erpnext.setup.utils import get_exchange_rate
 
+from feeds.custom_methods.sales_invoice import get_customer_outstanding
+
 
 class InvalidPaymentEntry(ValidationError):
 	pass
@@ -91,6 +93,8 @@ class PaymentEntry(AccountsController):
 		self.update_advance_paid()
 		self.update_payment_schedule()
 		self.set_status()
+		# update custom outstanding amounts
+		update_outstanding_amount(self.references)
 
 	def on_cancel(self):
 		self.ignore_linked_doctypes = ("GL Entry", "Stock Ledger Entry", "Payment Ledger Entry")
@@ -101,6 +105,8 @@ class PaymentEntry(AccountsController):
 		self.update_payment_schedule(cancel=1)
 		self.set_payment_req_status()
 		self.set_status()
+		# update custom outstanding amounts
+		update_outstanding_amount(self.references)
 
 	def set_payment_req_status(self):
 		from erpnext.accounts.doctype.payment_request.payment_request import update_payment_req_status
@@ -2015,3 +2021,11 @@ def make_payment_order(source_name, target_doc=None):
 	)
 
 	return doclist
+
+
+def update_outstanding_amount(references):
+	for reference in references:
+		if reference.reference_doctype == 'Sales Invoice':
+			reference_doc = frappe.get_doc("Sales Invoice",reference.reference_name)
+			customer_bal = get_customer_outstanding(reference_doc.customer,reference_doc.company,True)
+			reference_doc.db_set("outstanding_amount_custom", customer_bal)

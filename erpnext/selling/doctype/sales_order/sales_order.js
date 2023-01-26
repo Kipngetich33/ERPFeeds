@@ -315,7 +315,7 @@ cur_frm.set_query("material", "formula_details", function(doc, cdt, cdn) {
 	var d = locals[cdt][cdn];
 	return {
 		filters: [
-			["Item", "item_group", "in", ["Materials","Additives", "MIXING CHARGE"]]
+			["Item", "item_group", "!=", "Formula"]
 		]
 	}
 });
