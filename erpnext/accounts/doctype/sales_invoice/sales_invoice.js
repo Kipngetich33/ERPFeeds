@@ -180,6 +180,37 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 			// this.frm.cscript.quotation_btn();
 		}
 
+		// add a button to update outstanding balance
+		cur_frm.add_custom_button(__('Update Balance'),() => {
+			frappe.call({
+				"method": "feeds.custom_methods.sales_invoice.update_outstanding_bal",
+				"args": {
+					"sale_invoice_name": cur_frm.doc.name
+				},
+				callback: function(r) {
+					console.log("Sales invoice updated successfully ............................")
+					cur_frm.refresh_fields();
+				}
+			});
+		})
+
+		// cur_frm.add_custom_button(__('Print'),() => {
+		// 	console.log("Printing ......................................")
+		// })
+
+		// cur_frm.add_custom_button(__('Print'), function() {
+        //     var w = window.open(
+        //         frappe.urllib.get_full_url("/api/method/<doctype>.<doctype>.get_print_format?"
+        //         + "name=" + frm.doc.name
+        //         + "&format=Print Format"
+        //         + "&no_letterhead=0"
+        //     ));
+        //     if (!w) {
+        //         frappe.msgprint(__("Please enable pop-ups"));
+        //         return;
+        //     }
+        // });
+
 		this.set_default_print_format();
 		// if (doc.docstatus == 1 && !doc.inter_company_invoice_reference) {
 		// 	let internal = me.frm.doc.is_internal_customer;

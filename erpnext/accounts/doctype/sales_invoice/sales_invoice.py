@@ -44,7 +44,7 @@ from erpnext.stock.doctype.serial_no.serial_no import (
 from erpnext.accounts.utils import get_balance_on
 
 # use custom method to get outstaning amount
-from feeds.custom_methods.sales_invoice import get_customer_outstanding
+from feeds.custom_methods.sales_invoice import get_customer_outstanding,update_outstanding_bal
 
 form_grid_templates = {"items": "templates/form_grid/item_grid.html"}
 
@@ -248,8 +248,8 @@ class SalesInvoice(SellingController):
 
 		# calculate correct outstanding balance
 		updated_outstanding_bal = get_customer_outstanding(self.customer,self.company,True)
-		print(updated_outstanding_bal)
-		self.outstanding_amount_custom = updated_outstanding_bal
+		if self.outstanding_amount_custom != updated_outstanding_bal:
+			self.outstanding_amount_custom = updated_outstanding_bal
 
 	def on_submit(self):
 		self.validate_pos_paid_amount()
@@ -315,6 +315,13 @@ class SalesInvoice(SellingController):
 			self.apply_loyalty_points()
 
 		self.process_common_party_accounting()
+
+		# updating outstanding amount
+		update_outstanding_bal(self.name)
+
+		# force reload the document
+		frappe.reload_doc("Accounts", "Sales Invoice", self.name)
+
 
 	def validate_pos_return(self):
 		if self.is_consolidated:
@@ -2522,3 +2529,6 @@ def check_if_return_invoice_linked_with_payment_entry(self):
 			message += " " + ", ".join(payment_entries_link) + " "
 			message += _("to unallocate the amount of this Return Invoice before cancelling it.")
 			frappe.throw(message)
+
+def check_customer_balance(customer):
+	pass
