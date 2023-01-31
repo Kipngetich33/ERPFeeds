@@ -246,6 +246,10 @@ class SalesInvoice(SellingController):
 		if self.total_due != total_due:
 			self.total_due = total_due
 
+		# Remove unwated fields when user duplicates a an existing invoice
+		if not frappe.db.exists("Sales Invoice",self.name):
+			self.printed = 0
+
 		# calculate correct outstanding balance
 		updated_outstanding_bal = get_customer_outstanding(self.customer,self.company,True)
 		if self.outstanding_amount_custom != updated_outstanding_bal:
