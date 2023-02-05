@@ -1,5 +1,6 @@
 frappe.listview_settings['BOM'] = {
-	add_fields: ["is_active", "is_default", "total_cost", "has_variants"],
+	add_fields: ["is_active", "is_default", "total_cost", "has_variants","status"],
+	filters:[["status","=", "Active"]],
 	get_indicator: function(doc) {
 		if(doc.is_active && doc.has_variants) {
 			return [__("Template"), "orange", "has_variants,=,Yes"];
