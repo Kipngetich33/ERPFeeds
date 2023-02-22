@@ -1445,3 +1445,39 @@ const confirm_formula_save = (frm) => {
 const new_sales_invoice = () => {
 	frappe.set_route("Form", "Sales Invoice","new-sales-invoice-1")
 }
+
+frappe.ui.form.on("Sales Invoice Item", {
+	rate: function(frm, cdt, cdn) {
+		calculate_total_amount(cur_frm)
+	}
+});
+
+frappe.ui.form.on("Sales Invoice Item", {
+	qty: function(frm, cdt, cdn) {
+		calculate_total_amount(cur_frm)
+	}
+});
+
+frappe.ui.form.on("Sales Invoice Item", {
+	item_code: function(cur_frm, cdt, cdn) {
+		calculate_total_amount(cur_frm)
+	}
+});
+
+const calculate_total_amount = (frm) => {
+	let total_amt = 0
+	frm.doc.items.forEach((row) => {
+		total_amt += row.qty * row.rate
+	})
+
+	// modify for javascript
+	var decimal_part = total_amt - Math.floor(total_amt);
+	if(decimal_part > 0.5){
+		total_amt = Math.ceil(total_amt)
+	}else{
+		total_amt = Math.floor(total_amt)
+	}
+
+	frm.set_value("custom_rounded_total",total_amt)
+	frm.refresh_fields();
+}
