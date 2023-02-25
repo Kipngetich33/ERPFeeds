@@ -55,6 +55,9 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		erpnext.queries.setup_warehouse_query(this.frm);
 
 		// load the default user warehouse
+
+		// update the invoice
+		calculate_total_amount(cur_frm)
 	}
 
 	refresh(doc, dt, dn) {
@@ -222,6 +225,9 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		// 		}, __('Create'));
 		// 	}
 		// }
+
+		// update the invoice
+		calculate_total_amount(cur_frm)
 
 	}
 
