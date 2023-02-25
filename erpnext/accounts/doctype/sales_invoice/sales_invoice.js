@@ -188,7 +188,6 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 					"sale_invoice_name": cur_frm.doc.name
 				},
 				callback: function(r) {
-					console.log("Sales invoice updated successfully ............................")
 					cur_frm.refresh_fields();
 				}
 			});
@@ -440,6 +439,13 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 			row.income_account = cur_frm.doc.income_account
 			row.expense_account = "Cost of Goods Sold - GF"
 		}
+	}
+
+	before_items_remove(doc, cdt, cdn) {
+		var row = locals[cdt][cdn];
+		let new_total_value = cur_frm.doc.custom_rounded_total - row.amount
+		cur_frm.set_value("custom_rounded_total",new_total_value)
+		this.frm.refresh_fields("custom_rounded_total")
 	}
 
 	set_dynamic_labels() {
