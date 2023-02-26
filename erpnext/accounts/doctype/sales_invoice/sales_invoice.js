@@ -238,6 +238,15 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 		})
 	}
 
+	before_save(){
+		return confirm_customer_credits().then(result => {
+			console.log(result);
+		}).catch(error => {
+			// Handle the error
+			console.error(error);
+		});
+	}
+
 	on_submit(doc, dt, dn) {
 		var me = this;
 
@@ -1494,6 +1503,98 @@ const calculate_total_amount = (frm) => {
 		frm.set_value("custom_rounded_total",total_amt)
 		frm.refresh_fields();
 	}
-	frm.set_value("custom_rounded_total",total_amt)
-	frm.refresh_fields();
+}
+
+
+function confirm_customer_credits() {
+	return new Promise((resolve, reject) => {
+		frappe.call({
+			method: "feeds.custom_methods.sales_invoice.get_customer_balance",
+			args: {
+				customer: cur_frm.doc.customer,
+				company: cur_frm.doc.company
+			},
+			callback: function(res) {
+				if(res.message < 0 && cur_frm.doc.advances.length == 0){
+
+					frappe.confirm(`Customer has an advanced payment of Ksh <b>${Math.abs(res.message)}</b> </hr>
+					Would you like to apply this payment before saving?`,
+						() => {
+							cur_frm.set_value("apply_advanced",1)
+							resolve(true)
+						}, () => {
+							cur_frm.set_value("apply_advanced",0)
+							resolve(true)
+					})
+				}else{
+					resolve(true)
+				}
+			}
+		})
+	});
+}
+
+// pop up function to allow users to apply customer credit
+const confirm_credit_application = (frm) => {
+	let customer_credits = []
+
+	customer_credits.push({
+		payment_entry: "PE-1223",
+		created_by: "Kip",
+		applicable_amount: 100
+	})
+
+	customer_credits.push({
+		payment_entry: "PE-1223",
+		created_by: "Kip",
+		applicable_amount: 100
+	})
+
+	return new Promise(function(resolve, reject) {
+		const dialog = new frappe.ui.Dialog({
+			title: "The client has some credit in the system",
+			fields: [
+				{
+					fieldname: 'table',
+					fieldtype: 'Table',
+					cannot_add_rows: true,
+					in_place_edit: false,
+					data: customer_credits,
+					fields: [
+						{ 
+							fieldname: 'payment_entry', 
+							fieldtype: 'Link', 
+							in_list_view: 1, 
+							label: 'Payment Entry' 
+						},
+						{ 
+							fieldname: 'created_by', 
+							fieldtype: 'Link', 
+							in_list_view: 1, 
+							label: 'User' 
+						},
+						{ 
+							fieldname: 'applicable_amount', 
+							fieldtype: 'currency', 
+							in_list_view: 1, 
+							label: 'Applicable Amount' 
+						}
+					]
+				}
+			],
+			primary_action_label: 'Apply',
+			primary_action(values) {
+				dialog.hide();
+				resolve({values:values,action:'Continue'});
+			},
+			secondary_action_label: 'Cancel',
+			secondary_action: 'Cancel',
+			secondary_action(values) {
+				dialog.hide();
+				resolve({values:values,action:'Cancel'});
+			}
+		});
+		// show the dialog box
+		dialog.show()
+	})
 }
