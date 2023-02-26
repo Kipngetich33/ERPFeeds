@@ -255,6 +255,15 @@ class SalesInvoice(SellingController):
 		if self.outstanding_amount_custom != updated_outstanding_bal:
 			self.outstanding_amount_custom = updated_outstanding_bal
 
+		# check if user wants to apply advanced payments
+		if self.apply_advanced:
+			if len(self.advances):
+				pass
+			else:
+				self.apply_advanced = 0
+				frappe.throw('Saving stopped <b>Successfully</b> <hr> \
+				Go to <b>Payments Section</b> and enter amounts to allocate from Advance payments')
+
 	def on_submit(self):
 		self.validate_pos_paid_amount()
 
