@@ -1490,6 +1490,10 @@ const calculate_total_amount = (frm) => {
 		total_amt = Math.floor(total_amt)
 	}
 
+	if(cur_frm.doc.custom_rounded_total != total_amt){
+		frm.set_value("custom_rounded_total",total_amt)
+		frm.refresh_fields();
+	}
 	frm.set_value("custom_rounded_total",total_amt)
 	frm.refresh_fields();
 }
