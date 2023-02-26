@@ -240,10 +240,7 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 
 	before_save(){
 		return confirm_customer_credits().then(result => {
-			console.log(result);
 		}).catch(error => {
-			// Handle the error
-			console.error(error);
 		});
 	}
 
