@@ -1516,17 +1516,33 @@ function confirm_customer_credits() {
 				company: cur_frm.doc.company
 			},
 			callback: function(res) {
-				if(res.message < 0 && cur_frm.doc.advances.length == 0){
-
-					frappe.confirm(`Customer has an advanced payment of Ksh <b>${Math.abs(res.message)}</b> </hr>
-					Would you like to apply this payment before saving?`,
-						() => {
-							cur_frm.set_value("apply_advanced",1)
+				console.log
+				if(res.message < 0){
+					try {
+						if(cur_frm.doc.advances.length == 0){
+							frappe.confirm(`Customer has an advanced payment of Ksh <b>${Math.abs(res.message)}</b> </hr>
+							Would you like to apply this payment before saving?`,
+								() => {
+									cur_frm.set_value("apply_advanced",1)
+									resolve(true)
+								}, () => {
+									cur_frm.set_value("apply_advanced",0)
+									resolve(true)
+							})
+						}else{
 							resolve(true)
-						}, () => {
-							cur_frm.set_value("apply_advanced",0)
-							resolve(true)
-					})
+						}
+					}catch {
+						frappe.confirm(`Customer has an advanced payment of Ksh <b>${Math.abs(res.message)}</b> </hr>
+						Would you like to apply this payment before saving?`,
+							() => {
+								cur_frm.set_value("apply_advanced",1)
+								resolve(true)
+							}, () => {
+								cur_frm.set_value("apply_advanced",0)
+								resolve(true)
+						})
+					}
 				}else{
 					resolve(true)
 				}
