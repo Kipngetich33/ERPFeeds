@@ -240,11 +240,7 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends e
 
 	before_save(){
 		return confirm_customer_credits().then(result => {
-			console.log("Success..................")
-			console.log(result)
 		}).catch(error => {
-			console.log("Error ...................")
-			console.log(error)
 		});
 	}
 
@@ -1516,7 +1512,6 @@ function confirm_customer_credits() {
 				company: cur_frm.doc.company
 			},
 			callback: function(res) {
-				console.log
 				if(res.message < 0){
 					try {
 						if(cur_frm.doc.advances.length == 0){
