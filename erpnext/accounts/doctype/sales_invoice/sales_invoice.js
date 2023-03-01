@@ -1488,18 +1488,26 @@ const calculate_total_amount = (frm) => {
 		total_amt += row.qty * row.rate
 	})
 
-	// modify for javascript
-	var decimal_part = total_amt - Math.floor(total_amt);
-	if(decimal_part > 0.5){
-		total_amt = Math.ceil(total_amt)
-	}else{
-		total_amt = Math.floor(total_amt)
-	}
+	// if(cur_frm.doc.items.length == 1){
+	// 	// modify for javascript
+	// 	var decimal_part = total_amt - Math.floor(total_amt);
+	// 	if(decimal_part > 0.5){
+	// 		total_amt = Math.ceil(total_amt)
+	// 	}else{
+	// 		total_amt = Math.floor(total_amt)
+	// 	}
 
-	if(cur_frm.doc.custom_rounded_total != total_amt){
-		frm.set_value("custom_rounded_total",total_amt)
-		frm.refresh_fields();
-	}
+	// 	if(cur_frm.doc.custom_rounded_total != total_amt){
+	// 		frm.set_value("custom_rounded_total",total_amt)
+	// 		frm.refresh_fields();
+	// 	}
+	// }else{
+	// 	total_amt = Math.round(total_amt)
+	// }
+
+	total_amt = Math.round(total_amt)
+	frm.set_value("custom_rounded_total",total_amt)
+	frm.refresh_fields();
 }
 
 
