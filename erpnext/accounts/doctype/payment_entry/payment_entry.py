@@ -84,6 +84,7 @@ class PaymentEntry(AccountsController):
 		self.validate_paid_invoices()
 		self.ensure_supplier_is_not_blocked()
 		self.set_status()
+		self.validate_reference_number()
 
 	def on_submit(self):
 		if self.difference_amount:
@@ -499,6 +500,27 @@ class PaymentEntry(AccountsController):
 			self.status = "Draft"
 
 		self.db_set("status", self.status, update_modified=True)
+	
+	'''
+	Methods that checks to ensure that the reference number entered is unique
+	'''
+	def validate_reference_number(self):
+		if not self.reference_no: return 
+
+		reference_code = self.reference_no
+		# get matching existing payment reference codes
+		existing_reference_codes = frappe.get_list("Payment Entry", 
+			fields=["*"], 
+			filters=[
+				["reference_no",'=',reference_code],
+				['name','!=',self.name],
+				['status','!=','Cancelled']
+			]
+		)
+
+		if len(existing_reference_codes):
+			frappe.throw("The entered payment reference code has already been used")
+
 
 	def set_tax_withholding(self):
 		if not self.party_type == "Supplier":
