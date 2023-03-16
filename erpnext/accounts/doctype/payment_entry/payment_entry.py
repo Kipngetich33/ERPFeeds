@@ -84,7 +84,7 @@ class PaymentEntry(AccountsController):
 		self.validate_paid_invoices()
 		self.ensure_supplier_is_not_blocked()
 		self.set_status()
-		self.validate_reference_number()
+		# self.validate_reference_number()
 
 	def on_submit(self):
 		if self.difference_amount:
