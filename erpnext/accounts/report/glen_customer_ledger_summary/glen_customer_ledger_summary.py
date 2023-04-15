@@ -116,6 +116,25 @@ class PartyLedgerSummaryReport(object):
 			},
 		]
 
+		# add warehouse  &  user
+		columns += [
+			{
+				"label": _("Warehouse"),
+				"fieldname": "warehouse",
+				"fieldtype": "Link",
+				"options": "Warehouse",
+				"width": 120,
+			},
+			{
+				"label": _("User"),
+				"fieldname": "user",
+				"fieldtype": "Link",
+				"options": "User",
+				"width": 120,
+			},
+		]
+
+
 		return columns
 
 	def get_data(self):

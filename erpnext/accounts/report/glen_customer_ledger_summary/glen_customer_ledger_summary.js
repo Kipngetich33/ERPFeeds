@@ -40,6 +40,12 @@ frappe.query_reports["Glen Customer Ledger Summary"] = {
 			"options": "Warehouse"
 		},
 		{
+			"fieldname":"user",
+			"label": __("User"),
+			"fieldtype": "Link",
+			"options": "User"
+		},
+		{
 			"fieldname":"party",
 			"label": __("Customer"),
 			"fieldtype": "Link",
