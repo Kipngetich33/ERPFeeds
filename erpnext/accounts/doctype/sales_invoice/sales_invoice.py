@@ -179,6 +179,10 @@ class SalesInvoice(SellingController):
 
 		self.reset_default_field_value("set_warehouse", "items", "warehouse")
 
+
+		# validate selling price > buying price
+		self.validate_selling_price()
+
 	def validate_fixed_asset(self):
 		for d in self.get("items"):
 			if d.is_fixed_asset and d.meta.get_field("asset") and d.asset:
@@ -238,6 +242,26 @@ class SalesInvoice(SellingController):
 
 		# calculate totals again after applying TDS
 		self.calculate_taxes_and_totals()
+
+	def validate_selling_price(self):
+		'''
+		Custom method that validates that the selling price of an item in the sales invoice is 
+		greater than the items current buying price
+		'''
+		for item in self.items:	
+			# get item buying price
+			current_item_details = get_item_buying_price(item.item_code)
+			if not current_item_details['status']:
+				frappe.throw("Buying price for item {} is not defined".format(item.item_code))
+
+			# define current item price from item details
+			current_item_price = current_item_details['amount']
+			
+			# check if current_item price is less than or equal to selling price
+			if current_item_price > item.rate:
+				frappe.throw("Selling rate for {} should be atleast {} i.e item's buying price".
+		 		format(item.item_code,current_item_price))
+		
 
 	def before_save(self):
 		set_account_for_mode_of_payment(self)
@@ -2545,3 +2569,23 @@ def check_if_return_invoice_linked_with_payment_entry(self):
 
 def check_customer_balance(customer):
 	pass
+
+
+def get_item_buying_price(item_code):
+	item_price = frappe.db.get_value(
+		"Item Price",{
+			"price_list": "Standard Buying", 
+			"item_code": item_code
+		},
+		["price_list_rate", "currency"]
+	)
+	if item_price:
+		return {
+			'status': True,
+			'amount':item_price[0],
+			'currency':item_price[1]
+		}
+	else:
+		return {
+			'status': False
+		}
