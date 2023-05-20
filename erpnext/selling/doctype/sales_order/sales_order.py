@@ -74,6 +74,9 @@ class SalesOrder(SellingController):
 
 		self.reset_default_field_value("set_warehouse", "items", "warehouse")
 
+		# validate selling price
+		self.validate_selling_price(self)
+
 	def validate_po(self):
 		# validate p.o date v/s delivery date
 		if self.po_date and not self.skip_delivery_note:
@@ -192,6 +195,25 @@ class SalesOrder(SellingController):
 		super(SalesOrder, self).validate_with_previous_doc(
 			{"Quotation": {"ref_dn_field": "prevdoc_docname", "compare_fields": [["company", "="]]}}
 		)
+
+	def validate_selling_price(self):
+		'''
+		Custom method that validates that the selling price of an item in the sales invoice is 
+		greater than the items current buying price
+		'''
+		for item in self.items:	
+			# get item buying price
+			current_item_details = get_item_buying_price(item.item_code)
+			if not current_item_details['status']:
+				frappe.throw("Buying price for item {} is not defined".format(item.item_code))
+
+			# define current item price from item details
+			current_item_price = current_item_details['amount']
+			
+			# check if current_item price is less than or equal to selling price
+			if current_item_price > item.rate:
+				frappe.throw("Selling rate for {} should be atleast {} i.e item's buying price".
+				format(item.item_code,current_item_price))
 
 	def update_enquiry_status(self, prevdoc, flag):
 		enq = frappe.db.sql(
@@ -1315,3 +1337,23 @@ def update_produced_qty_in_so_item(sales_order, sales_order_item):
 		return
 
 	frappe.db.set_value("Sales Order Item", sales_order_item, "produced_qty", total_produced_qty)
+
+
+def get_item_buying_price(item_code):
+	item_price = frappe.db.get_value(
+		"Item Price",{
+			"price_list": "Standard Buying", 
+			"item_code": item_code
+		},
+		["price_list_rate", "currency"]
+	)
+	if item_price:
+		return {
+			'status': True,
+			'amount':item_price[0],
+			'currency':item_price[1]
+		}
+	else:
+		return {
+			'status': False
+		}
