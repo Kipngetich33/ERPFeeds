@@ -75,7 +75,7 @@ class SalesOrder(SellingController):
 		self.reset_default_field_value("set_warehouse", "items", "warehouse")
 
 		# validate selling price
-		self.validate_selling_price(self)
+		self.validate_selling_price()
 
 	def validate_po(self):
 		# validate p.o date v/s delivery date
