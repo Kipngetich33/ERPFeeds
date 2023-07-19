@@ -248,6 +248,8 @@ class SalesInvoice(SellingController):
 		Custom method that validates that the selling price of an item in the sales invoice is 
 		greater than the items current buying price
 		'''
+		if self.is_return: return
+			
 		for item in self.items:	
 			# get item buying price
 			current_item_details = get_item_buying_price(item.item_code)
