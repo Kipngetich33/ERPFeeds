@@ -290,6 +290,10 @@ class SalesInvoice(SellingController):
 				frappe.throw('Saving stopped <b>Successfully</b> <hr> \
 				Go to <b>Payments Section</b> and enter amounts to allocate from Advance payments')
 
+		# check if invoice is updating stock
+		if self.update_stock:
+			self.update_stock = 0
+
 	def on_submit(self):
 		self.validate_pos_paid_amount()
 
