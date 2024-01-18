@@ -291,8 +291,8 @@ class SalesInvoice(SellingController):
 				Go to <b>Payments Section</b> and enter amounts to allocate from Advance payments')
 
 		# check if invoice is updating stock
-		#if self.update_stock:
-		#	self.update_stock = 0
+		if not self.update_stock:
+			self.update_stock = 1
 
 	def on_submit(self):
 		self.validate_pos_paid_amount()
